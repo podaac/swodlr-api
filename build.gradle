@@ -62,7 +62,7 @@ jib {
     container {
         format = "OCI"
         labels = [
-            'org.opencontainers.image.source': 'https://github.com/podaac/swodlr',
+            'org.opencontainers.image.source': 'https://github.com/podaac/swodlr-api',
             'org.opencontainers.image.licenses': 'Apache-2.0'
         ]
     }
