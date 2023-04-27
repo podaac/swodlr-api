@@ -47,10 +47,46 @@ resource "aws_kms_key" "ingest_sns" {
   deletion_window_in_days = 10
 }
 
+resource "aws_kms_key_policy" "ingest_sns" {
+  key_id = aws_kms_key.ingest_sns.id
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Sid = "Enable IAM User Permissions"
+        Effect = "Allow"
+        Principal = {
+          AWS = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:root"
+        }
+        Action = "kms:*"
+        Resource = aws_kms_key.ingest_sns.arn
+      },
+
+      {
+        Sid = "Allow the ingest account access to the encryption keys"
+        Effect = "Allow"
+        Principal = {
+          AWS = "arn:aws:iam::${var.ingest_aws_account}:role/${var.ingest_aws_role}"
+        }
+        Action = [
+          "kms:GenerateDataKey*",
+          "kms:Decrypt"
+        ]
+        Resource = aws_kms_key.ingest_sns.arn
+      }
+    ]
+  })
+}
+
+resource "aws_kms_key" "job_update" {
+  description = "${local.resource_prefix}-job-update"
+  deletion_window_in_days = 10
+}
+
 // - SNS
 resource "aws_sns_topic" "ingest" {
   name = "${local.resource_prefix}-ingest-topic"
-  kms_master_key_id = aws_kms_key.ingest_sns.id
+  #kms_master_key_id = aws_kms_key.ingest_sns.id - CUMULUS-3292
 }
 
 resource "aws_sns_topic_subscription" "ingest_sqs_target" {
@@ -58,6 +94,27 @@ resource "aws_sns_topic_subscription" "ingest_sqs_target" {
   protocol = "sqs"
   endpoint = "arn:aws:sqs:${var.region}:${data.aws_caller_identity.current.account_id}:${aws_sqs_queue.ingest.name}"
   raw_message_delivery = true
+}
+
+resource "aws_sns_topic_policy" "ingest_topic_write" {
+  arn = aws_sns_topic.ingest.arn
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect = "Allow"
+      Principal = {
+        AWS = "arn:aws:iam::${var.ingest_aws_account}:root"
+      },
+      Action = "sns:Publish",
+      Resource = aws_sns_topic.ingest.arn
+    }]
+  })
+}
+
+resource "aws_sns_topic" "job_update" {
+  name = "${local.resource_prefix}-job-update-topic"
+  kms_master_key_id = aws_kms_key.job_update.id
 }
 
 // - SQS

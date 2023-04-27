@@ -46,3 +46,11 @@ variable "edl_client_secret" {
 variable "session_encryption_key" {
     type = string
 }
+
+variable "ingest_aws_account" {
+    type = string
+}
+
+variable "ingest_aws_role" {
+    type = string
+}
