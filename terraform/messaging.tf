@@ -78,8 +78,18 @@ resource "aws_kms_key_policy" "ingest_sns" {
   })
 }
 
-resource "aws_kms_key" "job_update" {
+resource "aws_kms_key" "product_create" {
   description = "${local.resource_prefix}-job-update"
+  deletion_window_in_days = 10
+}
+
+resource "aws_kms_key" "product_update" {
+  description = "${local.resource_prefix}-job-update"
+  deletion_window_in_days = 10
+}
+
+resource "aws_kms_key" "async_update" {
+  description = "${local.resource_prefix}-async-update"
   deletion_window_in_days = 10
 }
 
@@ -112,9 +122,16 @@ resource "aws_sns_topic_policy" "ingest_topic_write" {
   })
 }
 
-resource "aws_sns_topic" "job_update" {
-  name = "${local.resource_prefix}-job-update-topic"
-  kms_master_key_id = aws_kms_key.job_update.id
+resource "aws_sns_topic" "product_update" {
+  name = "${local.resource_prefix}-product-update-topic"
+  kms_master_key_id = aws_kms_key.product_update.id
+}
+
+resource "aws_sns_topic_subscription" "async_update_target" {
+  topic_arn = aws_sns_topic.product_update.arn
+  protocol = "sqs"
+  endpoint = aws_sqs_queue.async_update.arn
+  raw_message_delivery = true
 }
 
 // - SQS
@@ -139,6 +156,40 @@ resource "aws_sqs_queue_policy" "ingest" {
       Condition = {
         ArnEquals = {
           "aws:SourceArn" = aws_sns_topic.ingest.arn
+        }
+      }
+    }]
+  })
+}
+
+resource "aws_sqs_queue" "product_create" {
+  name = "${local.resource_prefix}-product-create-queue"
+  kms_master_key_id = aws_kms_key.product_create.id
+  message_retention_seconds = 7 * 24 * 60 * 60  # 1 week
+  visibility_timeout_seconds = 12 * 60 * 60     # 12 hours
+}
+
+resource "aws_sqs_queue" "async_update" {
+  name = "${local.resource_prefix}-async-update-queue"
+  kms_master_key_id = aws_kms_key.async_update.id
+  message_retention_seconds = 7 * 24 * 60 * 60  # 1 week
+  visibility_timeout_seconds = 12 * 60 * 60     # 12 hours
+}
+
+resource "aws_sqs_queue_policy" "async_update" {
+  queue_url = aws_sqs_queue.ingest.url
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect = "Allow"
+      Principal = {
+        Service = "sns.amazonaws.com"
+      }
+      Action = "sqs:SendMessage"
+      Resource = aws_sqs_queue.async_update.arn
+      Condition = {
+        ArnEquals = {
+          "aws:SourceArn" = aws_sns_topic.product_update.arn
         }
       }
     }]
