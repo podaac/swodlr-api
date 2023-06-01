@@ -79,12 +79,12 @@ resource "aws_kms_key_policy" "ingest_sns" {
 }
 
 resource "aws_kms_key" "product_create" {
-  description = "${local.resource_prefix}-job-update"
+  description = "${local.resource_prefix}-product-create"
   deletion_window_in_days = 10
 }
 
 resource "aws_kms_key" "product_update" {
-  description = "${local.resource_prefix}-job-update"
+  description = "${local.resource_prefix}-product-update"
   deletion_window_in_days = 10
 }
 
@@ -177,7 +177,7 @@ resource "aws_sqs_queue" "async_update" {
 }
 
 resource "aws_sqs_queue_policy" "async_update" {
-  queue_url = aws_sqs_queue.ingest.url
+  queue_url = aws_sqs_queue.async_update.url
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [{
