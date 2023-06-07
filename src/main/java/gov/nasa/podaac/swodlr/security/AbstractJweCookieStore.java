@@ -6,6 +6,9 @@ import com.nimbusds.jose.JWEAlgorithm;
 import com.nimbusds.jose.JWEHeader;
 import com.nimbusds.jose.JWEObject;
 import com.nimbusds.jose.Payload;
+
+import gov.nasa.podaac.swodlr.Environment;
+import gov.nasa.podaac.swodlr.SwodlrProperties;
 import gov.nasa.podaac.swodlr.Utils;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -34,6 +37,7 @@ public abstract class AbstractJweCookieStore implements Serializable {
   private static final CompressorStreamFactory COMPRESSOR_STREAM_FACTORY
       = new CompressorStreamFactory();
 
+  private static SwodlrProperties swodlrProperties;
   private static SwodlrSecurityProperties securityProperties;
 
   private final String cookieName;
@@ -54,11 +58,19 @@ public abstract class AbstractJweCookieStore implements Serializable {
       throw new RuntimeException("Generated cookie too large (>4096)");
     }
 
+    String sameSite;
+    if (getSwodlrProperties().getEnv() == Environment.DEV) {
+      sameSite = "None";
+    } else {
+      sameSite = "Strict";
+    }
+
     ResponseCookie cookie = ResponseCookie.from(cookieName, value)
         .maxAge(Duration.between(Instant.now(), expiration))
         .path("/")
-        // .secure(true) - TODO: Set this based on env
-        // .httpOnly(true) - TODO: Set this based on env
+        .httpOnly(true)
+        .secure(true) // Required for SameSite
+        .sameSite(sameSite)
         .build();
 
     return cookie;
@@ -210,5 +222,12 @@ public abstract class AbstractJweCookieStore implements Serializable {
           .getBean(SwodlrSecurityProperties.class);
     }
     return securityProperties;
+  }
+
+  private static SwodlrProperties getSwodlrProperties() {
+    if (swodlrProperties == null) {
+      swodlrProperties = Utils.applicationContext().getBean(SwodlrProperties.class);
+    }
+    return swodlrProperties;
   }
 }
