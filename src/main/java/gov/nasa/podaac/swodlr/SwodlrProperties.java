@@ -10,7 +10,7 @@ public class SwodlrProperties {
   private Environment env;
 
   public SwodlrProperties(
-    @DefaultValue("PROD") String env
+      @DefaultValue("PROD") String env
   ) {
     this.env = Environment.valueOf(env);
   }
