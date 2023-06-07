@@ -16,7 +16,7 @@ repositories {
 }
 
 dependencies {
-    implementation platform('io.awspring.cloud:spring-cloud-aws-dependencies:3.0.0-RC2')
+    implementation platform('io.awspring.cloud:spring-cloud-aws-dependencies:3.0.0')
 
     implementation 'org.apache.commons:commons-lang3:3.12.0'
     implementation 'org.apache.commons:commons-compress:1.22'
