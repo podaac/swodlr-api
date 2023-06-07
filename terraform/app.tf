@@ -128,10 +128,10 @@ resource "aws_ssm_parameter" "app_session_encryption_key" {
   overwrite = true
 }
 
-resource "aws_ssm_parameter" "app_environment" {
-  name = "${local.app_path}/swodlr.env"
+resource "aws_ssm_parameter" "app_active_profiles" {
+  name = "${local.app_path}/spring.profiles.active"
   type = "String"
-  value = var.environment
+  value = join(",", var.active_profiles)
   overwrite = true
 }
 

@@ -6,8 +6,6 @@ import com.nimbusds.jose.JWEAlgorithm;
 import com.nimbusds.jose.JWEHeader;
 import com.nimbusds.jose.JWEObject;
 import com.nimbusds.jose.Payload;
-import gov.nasa.podaac.swodlr.Environment;
-import gov.nasa.podaac.swodlr.SwodlrProperties;
 import gov.nasa.podaac.swodlr.Utils;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -25,6 +23,7 @@ import org.apache.commons.compress.compressors.CompressorOutputStream;
 import org.apache.commons.compress.compressors.CompressorStreamFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.core.env.Profiles;
 import org.springframework.http.HttpCookie;
 import org.springframework.http.ResponseCookie;
 import org.springframework.web.server.ServerWebExchange;
@@ -36,7 +35,6 @@ public abstract class AbstractJweCookieStore implements Serializable {
   private static final CompressorStreamFactory COMPRESSOR_STREAM_FACTORY
       = new CompressorStreamFactory();
 
-  private static SwodlrProperties swodlrProperties;
   private static SwodlrSecurityProperties securityProperties;
 
   private final String cookieName;
@@ -57,22 +55,21 @@ public abstract class AbstractJweCookieStore implements Serializable {
       throw new RuntimeException("Generated cookie too large (>4096)");
     }
 
-    String sameSite;
-    if (getSwodlrProperties().getEnv() == Environment.DEV) {
-      sameSite = "None";
-    } else {
-      sameSite = "Strict";
-    }
-
-    ResponseCookie cookie = ResponseCookie.from(cookieName, value)
+    var cookie = ResponseCookie.from(cookieName, value)
         .maxAge(Duration.between(Instant.now(), expiration))
         .path("/")
         .httpOnly(true)
-        .secure(true) // Required for SameSite
-        .sameSite(sameSite)
-        .build();
+        .secure(true);
+  
+    boolean isDev = Utils.applicationContext()
+        .getEnvironment()
+        .acceptsProfiles(Profiles.of("dev"));
+    
+    if (isDev) {
+      cookie.sameSite("None");
+    }
 
-    return cookie;
+    return cookie.build();
   }
 
   private JWEObject generateJwe() throws JOSEException {
@@ -221,12 +218,5 @@ public abstract class AbstractJweCookieStore implements Serializable {
           .getBean(SwodlrSecurityProperties.class);
     }
     return securityProperties;
-  }
-
-  private static SwodlrProperties getSwodlrProperties() {
-    if (swodlrProperties == null) {
-      swodlrProperties = Utils.applicationContext().getBean(SwodlrProperties.class);
-    }
-    return swodlrProperties;
   }
 }

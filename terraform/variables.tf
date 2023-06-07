@@ -55,6 +55,7 @@ variable "ingest_aws_role" {
     type = string
 }
 
-variable "environment" {
-    type = string
+variable "active_profiles" {
+    type = list(string)
+    default = []
 }
