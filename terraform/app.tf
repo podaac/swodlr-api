@@ -128,6 +128,13 @@ resource "aws_ssm_parameter" "app_session_encryption_key" {
   overwrite = true
 }
 
+resource "aws_ssm_parameter" "app_environment" {
+  name = "${local.app_path}/swodlr.env"
+  type = "String"
+  value = var.environment
+  overwrite = true
+}
+
 /* -- Security -- */
 resource "aws_security_group" "app" {
   name = "${local.resource_prefix}-app-sg"

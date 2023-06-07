@@ -54,3 +54,7 @@ variable "ingest_aws_account" {
 variable "ingest_aws_role" {
     type = string
 }
+
+variable "environment" {
+    type = string
+}
