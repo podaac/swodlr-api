@@ -32,6 +32,7 @@ resource "aws_ecs_service" "app" {
   task_definition = aws_ecs_task_definition.app.arn
   desired_count = 1
   launch_type = "FARGATE"
+  force_new_deployment = true
 
   load_balancer {
     target_group_arn = aws_lb_target_group.app.arn
