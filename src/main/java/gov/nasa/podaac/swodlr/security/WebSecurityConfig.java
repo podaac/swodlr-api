@@ -5,10 +5,7 @@ import gov.nasa.podaac.swodlr.SwodlrProperties;
 import gov.nasa.podaac.swodlr.security.authentication.client.JweCookieReactiveOauth2AuthorizedClientService;
 import gov.nasa.podaac.swodlr.security.authentication.handlers.SuccessMessageAuthenticationSuccessHandler;
 import gov.nasa.podaac.swodlr.security.authentication.handlers.UserBootstrapAuthenticationSuccessHandler;
-
 import java.util.Collections;
-import java.util.List;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Profile;

@@ -6,7 +6,6 @@ import com.nimbusds.jose.JWEAlgorithm;
 import com.nimbusds.jose.JWEHeader;
 import com.nimbusds.jose.JWEObject;
 import com.nimbusds.jose.Payload;
-
 import gov.nasa.podaac.swodlr.Environment;
 import gov.nasa.podaac.swodlr.SwodlrProperties;
 import gov.nasa.podaac.swodlr.Utils;
