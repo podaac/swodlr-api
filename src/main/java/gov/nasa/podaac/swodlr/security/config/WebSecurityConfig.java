@@ -1,4 +1,4 @@
-package gov.nasa.podaac.swodlr.security;
+package gov.nasa.podaac.swodlr.security.config;
 
 import gov.nasa.podaac.swodlr.security.authentication.client.JweCookieReactiveOauth2AuthorizedClientService;
 import gov.nasa.podaac.swodlr.security.authentication.handlers.SuccessMessageAuthenticationSuccessHandler;

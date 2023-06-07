@@ -23,6 +23,7 @@ import org.apache.commons.compress.compressors.CompressorOutputStream;
 import org.apache.commons.compress.compressors.CompressorStreamFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.core.env.Profiles;
 import org.springframework.http.HttpCookie;
 import org.springframework.http.ResponseCookie;
 import org.springframework.web.server.ServerWebExchange;
@@ -54,14 +55,21 @@ public abstract class AbstractJweCookieStore implements Serializable {
       throw new RuntimeException("Generated cookie too large (>4096)");
     }
 
-    ResponseCookie cookie = ResponseCookie.from(cookieName, value)
+    var cookie = ResponseCookie.from(cookieName, value)
         .maxAge(Duration.between(Instant.now(), expiration))
         .path("/")
-        // .secure(true) - TODO: Set this based on env
-        // .httpOnly(true) - TODO: Set this based on env
-        .build();
+        .httpOnly(true)
+        .secure(true);
+  
+    boolean isDev = Utils.applicationContext()
+        .getEnvironment()
+        .acceptsProfiles(Profiles.of("dev"));
+    
+    if (isDev) {
+      cookie.sameSite("None");
+    }
 
-    return cookie;
+    return cookie.build();
   }
 
   private JWEObject generateJwe() throws JOSEException {

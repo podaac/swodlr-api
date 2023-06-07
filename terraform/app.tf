@@ -128,6 +128,13 @@ resource "aws_ssm_parameter" "app_session_encryption_key" {
   overwrite = true
 }
 
+resource "aws_ssm_parameter" "app_active_profiles" {
+  name = "${local.app_path}/spring.profiles.active"
+  type = "String"
+  value = join(",", var.active_profiles)
+  overwrite = true
+}
+
 /* -- Security -- */
 resource "aws_security_group" "app" {
   name = "${local.resource_prefix}-app-sg"
