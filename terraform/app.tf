@@ -1,8 +1,8 @@
 /* -- ECS -- */
 locals {
   container_image = "${var.container_image}:${var.container_image_tag}"
-  container_vcpu = 0.5
-  container_memory = 1024
+  container_vcpu = 1
+  container_memory = 2048
 }
 
 resource "aws_ecs_cluster" "default" {
@@ -60,6 +60,13 @@ resource "aws_ecs_task_definition" "app" {
   container_definitions = jsonencode([{
     name = "${local.resource_prefix}-app"
     image = local.container_image
+
+    environment = [
+      {
+        name = "SPRING_PROFILES_ACTIVE",
+        value = join(",", var.active_profiles)
+      }
+    ]
 
     portMappings = [{
       containerPort = 8080
@@ -126,13 +133,6 @@ resource "aws_ssm_parameter" "app_session_encryption_key" {
   name = "${local.app_path}/swodlr.security.session-encryption-key"
   type = "SecureString"
   value = var.session_encryption_key
-  overwrite = true
-}
-
-resource "aws_ssm_parameter" "app_active_profiles" {
-  name = "${local.app_path}/spring.profiles.active"
-  type = "String"
-  value = join(",", var.active_profiles)
   overwrite = true
 }
 
