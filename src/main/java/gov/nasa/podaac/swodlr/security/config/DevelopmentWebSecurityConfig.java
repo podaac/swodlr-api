@@ -10,7 +10,7 @@ import org.springframework.web.cors.reactive.CorsConfigurationSource;
 import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
 
 @Configuration
-@Profile("dev")
+@Profile({"dev"})
 public class DevelopmentWebSecurityConfig {
   @Bean
   public CorsConfigurationSource corsConfigurationSource() {
@@ -20,6 +20,7 @@ public class DevelopmentWebSecurityConfig {
     config.addAllowedMethod(HttpMethod.HEAD);
     config.setAllowCredentials(true);
     config.setAllowedOriginPatterns(Collections.singletonList("*"));
+    config.setAllowedHeaders(Collections.singletonList("*"));
 
     UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
     source.registerCorsConfiguration("/**", config);
