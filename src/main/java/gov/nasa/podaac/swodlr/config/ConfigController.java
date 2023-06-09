@@ -1,7 +1,6 @@
 package gov.nasa.podaac.swodlr.config;
 
 import java.util.Map;
-
 import org.springframework.security.oauth2.client.web.server.DefaultServerOAuth2AuthorizationRequestResolver;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -15,9 +14,9 @@ public class ConfigController {
 
   public ConfigController() {
     var authorizationUri = new UriTemplate(
-      DefaultServerOAuth2AuthorizationRequestResolver.DEFAULT_AUTHORIZATION_REQUEST_PATTERN
+        DefaultServerOAuth2AuthorizationRequestResolver.DEFAULT_AUTHORIZATION_REQUEST_PATTERN
     ).expand(Map.ofEntries(
-      Map.entry("registrationId", "edl")
+        Map.entry("registrationId", "edl")
     )).toString();
     response = new ConfigResponse(authorizationUri);
   }
