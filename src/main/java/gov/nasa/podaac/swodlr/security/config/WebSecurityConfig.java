@@ -19,7 +19,7 @@ import org.springframework.security.web.server.authentication.DelegatingServerAu
 @Profile({"!test"})
 public class WebSecurityConfig {
   private final ReactiveOAuth2AuthorizedClientManager authorizedClientManager;
-  private final ReactiveOAuth2AuthorizedClientService authorizedClientService; 
+  private final ReactiveOAuth2AuthorizedClientService authorizedClientService;
 
   @Autowired
   private UserBootstrapAuthenticationSuccessHandler userBootstrapHandler;
@@ -40,7 +40,9 @@ public class WebSecurityConfig {
         .cors().and()
         .csrf().disable()
         .authorizeExchange(authorize -> {
-          authorize.anyExchange().authenticated();
+          authorize
+              .pathMatchers("/config").permitAll()
+              .anyExchange().authenticated();
         })
         .oauth2Client().and()
         .oauth2Login((login) -> {
