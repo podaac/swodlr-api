@@ -36,7 +36,7 @@ public class RedirectOrMessageAuthenticationSuccessHandler
     return exchange
       .getSession()
       .flatMap((session) -> {
-        String redirectUri = session.getAttribute(
+        String redirectUri = (String) session.getAttributes().remove(
             RedirectingServerOauth2AuthorizationRequestResolver.FRONTEND_REDIRECT_SESSION_KEY
         );
 
