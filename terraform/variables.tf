@@ -59,3 +59,8 @@ variable "active_profiles" {
     type = list(string)
     default = []
 }
+
+variable "frontend_uri_pattern" {
+    type = string
+    nullable = true
+}
