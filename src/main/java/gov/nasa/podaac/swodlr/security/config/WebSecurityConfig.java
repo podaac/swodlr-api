@@ -1,7 +1,8 @@
 package gov.nasa.podaac.swodlr.security.config;
 
+import gov.nasa.podaac.swodlr.security.authentication.RedirectingServerOauth2AuthorizationRequestResolver;
 import gov.nasa.podaac.swodlr.security.authentication.client.JweCookieReactiveOauth2AuthorizedClientService;
-import gov.nasa.podaac.swodlr.security.authentication.handlers.SuccessMessageAuthenticationSuccessHandler;
+import gov.nasa.podaac.swodlr.security.authentication.handlers.RedirectOrMessageAuthenticationSuccessHandler;
 import gov.nasa.podaac.swodlr.security.authentication.handlers.UserBootstrapAuthenticationSuccessHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -25,7 +26,10 @@ public class WebSecurityConfig {
   private UserBootstrapAuthenticationSuccessHandler userBootstrapHandler;
 
   @Autowired
-  private SuccessMessageAuthenticationSuccessHandler successHandler;
+  private RedirectOrMessageAuthenticationSuccessHandler successHandler;
+
+  @Autowired
+  private RedirectingServerOauth2AuthorizationRequestResolver authorizationRequestResolver;
 
   public WebSecurityConfig(ReactiveClientRegistrationRepository clientRegistrationRepository) {
     authorizedClientService = new JweCookieReactiveOauth2AuthorizedClientService();
@@ -48,9 +52,10 @@ public class WebSecurityConfig {
         .oauth2Login((login) -> {
           var authenticationSuccessHandler = new DelegatingServerAuthenticationSuccessHandler(
               userBootstrapHandler, successHandler);
-
-          login.authenticationSuccessHandler(authenticationSuccessHandler);
-          login.authorizedClientService(authorizedClientService);
+          
+          login.authenticationSuccessHandler(authenticationSuccessHandler)
+              .authorizedClientService(authorizedClientService)
+              .authorizationRequestResolver(authorizationRequestResolver);
         });
 
     return http.build();

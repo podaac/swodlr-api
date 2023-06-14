@@ -6,6 +6,7 @@ import com.nimbusds.jose.KeyLengthException;
 import com.nimbusds.jose.crypto.DirectDecrypter;
 import com.nimbusds.jose.crypto.DirectEncrypter;
 import java.time.Duration;
+import java.util.regex.Pattern;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.ConstructorBinding;
 import org.springframework.security.crypto.codec.Hex;
@@ -16,6 +17,7 @@ public class SwodlrSecurityProperties {
   private final JWEEncrypter encrypter;
   private final JWEDecrypter decrypter;
   private final Duration sessionLength;
+  private final Pattern frontendUriPattern;
 
   /**
    * Configuration properties for swodlr sessions.
@@ -24,20 +26,30 @@ public class SwodlrSecurityProperties {
    *                             Must be 128 bits (16 bytes).
    * @param sessionLength How long sessions are valid
    */
-  public SwodlrSecurityProperties(String sessionEncryptionKey, Duration sessionLength) {
+  public SwodlrSecurityProperties(
+      String frontendUriPattern,
+      String sessionEncryptionKey,
+      Duration sessionLength
+  ) {
+    this.frontendUriPattern = Pattern.compile(frontendUriPattern);
+
     byte[] key = Hex.decode(sessionEncryptionKey);
 
     if (key.length != 16) {
-      throw new IllegalArgumentException("swlodr only supports 128 bit encryption keys.");
+      throw new IllegalArgumentException("SWODLR only supports 128 bit encryption keys.");
     }
 
     try {
       this.encrypter = new DirectEncrypter(key);
       this.decrypter = new DirectDecrypter(key);
     } catch (KeyLengthException e) {
-      throw new IllegalArgumentException("swlodr only supports 128 bit encryption keys.", e);
+      throw new IllegalArgumentException("SWODLR only supports 128 bit encryption keys.", e);
     }
     this.sessionLength = sessionLength;
+  }
+
+  public Pattern frontendUriPattern() {
+    return frontendUriPattern;
   }
 
   public JWEEncrypter encrypter() {
