@@ -92,3 +92,10 @@ resource "aws_ssm_parameter" "db_app_password" {
   value = random_password.app_password.result
   overwrite = true
 }
+
+resource "aws_ssm_parameter" "db_name" {
+  name = "${local.service_path}/db-name"
+  type = "String"
+  value = var.db_name
+  overwrite = true
+}
