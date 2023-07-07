@@ -144,6 +144,22 @@ resource "aws_ssm_parameter" "app_frontend_uri_pattern" {
   overwrite = true
 }
 
+resource "aws_ssm_parameter" "tea_mapping" {
+  for_each = var.tea_mapping
+
+  name = "${local.app_path}/swodlr.tea-mapping.${each.key}"
+  type = "String"
+  value = each.value
+  overwrite = true
+}
+
+resource "aws_ssm_parameter" "app_product_create_queue_url" {
+  name = "${local.app_path}/swodlr.product-create-queue-url"
+  type = "SecureString"
+  value = aws_sqs_queue.product_create.url
+  overwrite = true
+}
+
 /* -- Security -- */
 resource "aws_security_group" "app" {
   name = "${local.resource_prefix}-app-sg"

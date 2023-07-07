@@ -64,3 +64,7 @@ variable "frontend_uri_pattern" {
     type = string
     default = ""
 }
+
+variable "tea_mapping" {
+    type = map(string)
+}
