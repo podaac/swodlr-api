@@ -70,13 +70,13 @@ public class GranuleTests {
     granule = granuleRepository.save(granule);
 
     graphQlTester
-      .documentName("query/l2RasterProduct_granules")
-      .variable("id", mockProduct.getId())
-      .execute()
-      .path("l2RasterProduct.granules[0].uri")
-      .entity(String.class)
-      .satisfies(uri -> 
-        assertTrue(uri.equals("https://earl-grey/test-bucket/path"))
-      );
+        .documentName("query/l2RasterProduct_granules")
+        .variable("id", mockProduct.getId())
+        .execute()
+        .path("l2RasterProduct.granules[0].uri")
+        .entity(String.class)
+        .satisfies(uri -> 
+          assertTrue(uri.equals("https://earl-grey/test-bucket/path"))
+        );
   }
 }

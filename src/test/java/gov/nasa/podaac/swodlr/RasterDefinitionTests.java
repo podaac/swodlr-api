@@ -14,7 +14,6 @@ import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
-
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -51,21 +50,21 @@ public class RasterDefinitionTests {
   public void deleteDefinition() {
     // Generate definition
     RasterDefinition definition = new RasterDefinition(
-      mockUser,
-      "Test Definition",
-      false,
-      GridType.GEO,
-      8,
-      null,
-      null
+        mockUser,
+        "Test Definition",
+        false,
+        GridType.GEO,
+        8,
+        null,
+        null
     );
     rasterDefinitionRepository.save(definition);
 
     // Delete definition
     graphQlTester
-      .documentName("mutation/deleteRasterDefinition")
-      .variable("id", definition.getId())
-      .executeAndVerify();
+        .documentName("mutation/deleteRasterDefinition")
+        .variable("id", definition.getId())
+        .executeAndVerify();
 
     // Verify removal in database
     var result = rasterDefinitionRepository.findById(definition.getId());
@@ -82,14 +81,14 @@ public class RasterDefinitionTests {
     final int mgrsBandAdjust = 1;
 
     var response = graphQlTester
-      .documentName("mutation/createRasterDefinition")
-      .variable("name", name)
-      .variable("outputGranuleExtentFlag", outputGranuleExtentFlag)
-      .variable("outputSamplingGridType", outputSamplingGridType)
-      .variable("rasterResolution", rasterResolution)
-      .variable("utmZoneAdjust", utmZoneAdjust)
-      .variable("mgrsBandAdjust", mgrsBandAdjust)
-      .execute();
+        .documentName("mutation/createRasterDefinition")
+        .variable("name", name)
+        .variable("outputGranuleExtentFlag", outputGranuleExtentFlag)
+        .variable("outputSamplingGridType", outputSamplingGridType)
+        .variable("rasterResolution", rasterResolution)
+        .variable("utmZoneAdjust", utmZoneAdjust)
+        .variable("mgrsBandAdjust", mgrsBandAdjust)
+        .execute();
 
     List<RasterDefinition> definitions = rasterDefinitionRepository.findAll();
     assertEquals(1, definitions.size());
@@ -106,22 +105,22 @@ public class RasterDefinitionTests {
   @Test
   public void queryRasterDefinitionsWithoutArgs() {
     var utmDefinition = new RasterDefinition(
-      mockUser,
-      "utm-definition",
-      true,
-      GridType.UTM,
-      10000,
-      -1,
-      1
+        mockUser,
+        "utm-definition",
+        true,
+        GridType.UTM,
+        10000,
+        -1,
+        1
     );
     var geoDefinition = new RasterDefinition(
-      mockUser,
-      "geo-definition",
-      false,
-      GridType.GEO,
-      3,
-      null,
-      null
+        mockUser,
+        "geo-definition",
+        false,
+        GridType.GEO,
+        3,
+        null,
+        null
     );
 
     rasterDefinitionRepository.save(utmDefinition);
@@ -169,13 +168,13 @@ public class RasterDefinitionTests {
       }
 
       RasterDefinition definition = new RasterDefinition(
-        mockUser,
-        UUID.randomUUID().toString(),
-        random.nextBoolean(),
-        gridType,
-        rasterResolution,
-        utmZoneAdjust,
-        mgrsBandAdjust
+          mockUser,
+          UUID.randomUUID().toString(),
+          random.nextBoolean(),
+          gridType,
+          rasterResolution,
+          utmZoneAdjust,
+          mgrsBandAdjust
       );
 
       definitions.put(definition.getId(), definition);

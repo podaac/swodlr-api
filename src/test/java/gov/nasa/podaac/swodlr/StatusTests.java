@@ -21,7 +21,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -78,14 +77,14 @@ public class StatusTests {
 
     /* Setup mock data */
     final L2RasterProduct mockProduct = new L2RasterProduct(
-      0,
-      1,
-      2,
-      false,
-      GridType.UTM,
-      1000,
-      0,
-      0
+        0,
+        1,
+        2,
+        false,
+        GridType.UTM,
+        1000,
+        0,
+        0
     );
     l2RasterProductRepository.save(mockProduct);
 

@@ -12,7 +12,6 @@ import gov.nasa.podaac.swodlr.l2rasterproduct.L2RasterProductRepository;
 import gov.nasa.podaac.swodlr.queue.ProductCreateQueue;
 import gov.nasa.podaac.swodlr.rasterdefinition.GridType;
 import gov.nasa.podaac.swodlr.status.State;
-import reactor.core.publisher.Mono;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.HashSet;
@@ -35,6 +34,7 @@ import org.springframework.graphql.test.tester.GraphQlTester.Response;
 import org.springframework.graphql.test.tester.HttpGraphQlTester;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
+import reactor.core.publisher.Mono;
 
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 @ActiveProfiles({"test"})
@@ -54,7 +54,7 @@ public class L2RasterProductTests {
   @BeforeEach 
   public void initMock() {
     when(productCreateQueue.queueProduct(any(L2RasterProduct.class)))
-      .thenReturn(Mono.empty());
+        .thenReturn(Mono.empty());
   }
 
   @AfterEach
@@ -186,10 +186,10 @@ public class L2RasterProductTests {
         .satisfy(errors -> {
           final Set<String> expectedProperties = new HashSet<>();
           Collections.addAll(
-            expectedProperties,
-            "rasterResolution",
-            "mgrsBandAdjust",
-            "utmZoneAdjust"
+              expectedProperties,
+              "rasterResolution",
+              "mgrsBandAdjust",
+              "utmZoneAdjust"
           );
 
           assertEquals(expectedProperties.size(), errors.size());
