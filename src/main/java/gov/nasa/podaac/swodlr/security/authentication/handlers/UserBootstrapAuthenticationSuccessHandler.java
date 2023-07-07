@@ -32,12 +32,24 @@ public class UserBootstrapAuthenticationSuccessHandler
             String username = oauth2User.getName();
             Optional<User> result = userRepository.findByUsername(username);
 
+            String firstName = oauth2User.getAttribute("first_name");
+            String lastName = oauth2User.getAttribute("last_name");
+            String email = oauth2User.getAttribute("email_address");
+
             if (result.isPresent()) {
+              User user = result.get();
+
+              // Update db with latest info from EDL
+              user.firstName = firstName;
+              user.lastName = lastName;
+              user.email = email;
+              userRepository.save(user);
+
               UserReference userReference = new UserReference(result.get());
               session.getAttributes().put("user", userReference);
             } else {
-              User user = new User(username);
-              userRepository.save(user);
+              User user = new User(username, email, firstName, lastName);
+              user = userRepository.save(user);
 
               UserReference userReference = new UserReference(user);
               session.getAttributes().put("user", userReference);

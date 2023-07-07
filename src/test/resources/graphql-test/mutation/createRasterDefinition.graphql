@@ -1,0 +1,19 @@
+mutation (
+	$name: String!,
+	$outputGranuleExtentFlag: Boolean!
+	$outputSamplingGridType: GridType!,
+	$rasterResolution: Int!
+	$utmZoneAdjust: Int,
+	$mgrsBandAdjust: Int
+){
+	createRasterDefinition(
+		name: $name,
+		outputGranuleExtentFlag: $outputGranuleExtentFlag,
+		outputSamplingGridType: $outputSamplingGridType,
+		rasterResolution: $rasterResolution,
+		utmZoneAdjust: $utmZoneAdjust,
+		mgrsBandAdjust: $mgrsBandAdjust
+	) {
+		id
+	}
+}

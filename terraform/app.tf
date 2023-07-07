@@ -138,7 +138,7 @@ resource "aws_ssm_parameter" "app_session_encryption_key" {
 
 resource "aws_ssm_parameter" "app_frontend_uri_pattern" {
   name = "${local.app_path}/swodlr.security.frontend-uri-pattern"
-  count = var.frontend_uri_pattern == null ? 1 : 0
+  count = length(var.frontend_uri_pattern) > 0 ? 1 : 0
   type = "String"
   value = var.frontend_uri_pattern
   overwrite = true

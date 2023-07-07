@@ -1,20 +1,23 @@
-package gov.nasa.podaac.swodlr.status;
+package gov.nasa.podaac.swodlr.granule;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import gov.nasa.podaac.swodlr.Utils;
 import gov.nasa.podaac.swodlr.l2rasterproduct.L2RasterProduct;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.time.LocalDateTime;
 import java.util.UUID;
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
+import org.hibernate.validator.constraints.URL;
 
 @Entity
-@Table(name = "Status")
-public class Status {
+@Table(name = "Granules")
+public class Granule {
   @Id
   private UUID id;
 
@@ -26,24 +29,15 @@ public class Status {
   private LocalDateTime timestamp;
 
   @Column(nullable = false)
-  @Enumerated(EnumType.STRING)
-  private State state;
+  private String uri;
 
-  @Column
-  private String reason;
+  Granule() { }
 
-  public Status() { }
-
-  public Status(L2RasterProduct product, State state) {
-    this(product, state, null);
-  }
-
-  public Status(L2RasterProduct product, State state, String reason) {
+  public Granule(L2RasterProduct product, String uri) {
     this.id = UUID.randomUUID();
-    this.product = product;
     this.timestamp = LocalDateTime.now();
-    this.state = state;
-    this.reason = reason;
+    this.product = product;
+    this.uri = uri;
   }
 
   public UUID getId() {
@@ -58,17 +52,20 @@ public class Status {
     return timestamp;
   }
 
-  public State getState() {
-    return state;
+  @JsonIgnore
+  public String getS3Uri() {
+    return uri;
   }
 
-  public String getReason() {
-    return reason;
-  }
+  public String getUri() {
+    try {
+      return Utils
+        .applicationContext()
+        .getBean(TeaMapper.class)
+        .convertS3Uri(URI.create(uri))
+        .toString();
+    } catch (URISyntaxException ex) { }
 
-  @Override
-  public String toString() {
-    return "%s (id: %s, productID: %s, timestamp: %s, state: %s, reason: %s)".formatted(
-        super.toString(), id, product, timestamp, state, reason);
+    return null;
   }
 }

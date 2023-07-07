@@ -1,14 +1,9 @@
 package gov.nasa.podaac.swodlr.user;
 
-import gov.nasa.podaac.swodlr.l2rasterproduct.L2RasterProduct;
-import java.util.Set;
 import java.util.UUID;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.JoinTable;
-import javax.persistence.ManyToMany;
 import javax.persistence.Table;
 
 @Entity
@@ -20,22 +15,30 @@ public class User {
   @Column(unique = true)
   private String username;
 
-  @ManyToMany
-  @JoinTable(
-      name = "ProductHistory",
-      joinColumns = @JoinColumn(name = "requestedBy"),
-      inverseJoinColumns = @JoinColumn(name = "rasterProduct")
-  )
-  Set<L2RasterProduct> productHistory;
+  @Column(nullable = false)
+  public String email;
+
+  @Column(nullable = false)
+  public String firstName;
+
+  @Column(nullable = false)
+  public String lastName;
 
   public User() { }
 
-  public User(String username) {
+  public User(String username, String email, String firstName, String lastName) {
     id = UUID.randomUUID();
     this.username = username;
+    this.email = email;
+    this.firstName = firstName;
+    this.lastName = lastName;
   }
   
   public UUID getId() {
     return id;
+  }
+
+  public String getUsername() {
+    return username;
   }
 }

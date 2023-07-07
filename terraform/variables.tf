@@ -62,5 +62,5 @@ variable "active_profiles" {
 
 variable "frontend_uri_pattern" {
     type = string
-    nullable = true
+    default = ""
 }

@@ -1,19 +1,34 @@
 package gov.nasa.podaac.swodlr.rasterdefinition;
 
+import gov.nasa.podaac.swodlr.user.User;
+import gov.nasa.podaac.swodlr.validation.ValidRasterOptions;
 import java.util.UUID;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.Table;
+
+import org.hibernate.validator.constraints.Length;
 import org.hibernate.validator.constraints.Range;
 
 @Entity
 @Table(name = "RasterDefinitions")
+@ValidRasterOptions
 public class RasterDefinition {
   @Id
   private UUID id;
+
+  @ManyToOne(optional = false)
+  @JoinColumn(name = "userId", nullable = false)
+  private User user;
+
+  @Column(nullable = false)
+  @Length(min = 1, max = 100)
+  private String name;
 
   /*
    * Flag indicating whether the SAS should produce a non-
@@ -23,14 +38,14 @@ public class RasterDefinition {
    * true - an overlapping, 256 km x 128 km granule extent
    */
   @Column(nullable = false)
-  public Boolean outputGranuleExtentFlag;
+  private Boolean outputGranuleExtentFlag;
 
   /*
    * Type of the raster sampling grid
    */
   @Column(nullable = false)
   @Enumerated(EnumType.STRING)
-  public GridType outputSamplingGridType;
+  private GridType outputSamplingGridType;
 
   /*
    * Resolution of the raster sampling grid in units of integer
@@ -45,8 +60,7 @@ public class RasterDefinition {
    * TODO: Validate based on value of outputSamplingGridType + valid values?
    */
   @Column(nullable = false)
-  @Range(min = 3, max = 10000)
-  public Integer rasterResolution;
+  private Integer rasterResolution;
 
   /*
    * This parameter allows the UTM grid to use a zone within
@@ -58,8 +72,7 @@ public class RasterDefinition {
    * TODO: Check if not null only on UTM grids?
    */
   @Column
-  @Range(min = -1, max = 1)
-  public Integer utmZoneAdjust;
+  private Integer utmZoneAdjust;
 
   /*
    * This parameter allows the UTM grid to use an MGRS
@@ -72,15 +85,59 @@ public class RasterDefinition {
    * TODO: Check if not null only on UTM grids?
    */
   @Column
-  @Range(min = -1, max = 1)
-  public Integer mgrsBandAdjust;
+  private Integer mgrsBandAdjust;
 
-  public RasterDefinition() {
-    id = UUID.randomUUID();
+  RasterDefinition() { }
+
+  public RasterDefinition(
+      User user,
+      String name,
+      boolean outputGranuleExtentFlag,
+      GridType outputSamplingGridType,
+      int rasterResolution,
+      Integer utmZoneAdjust,
+      Integer mgrsBandAdjust
+  ) {
+    this.id = UUID.randomUUID();
+    this.user = user;
+    this.name = name;
+    this.outputGranuleExtentFlag = outputGranuleExtentFlag;
+    this.outputSamplingGridType = outputSamplingGridType;
+    this.rasterResolution = rasterResolution;
+    this.utmZoneAdjust = utmZoneAdjust;
+    this.mgrsBandAdjust = mgrsBandAdjust;
   }
 
   public UUID getId() {
     return id;
+  }
+
+  public User getUser() {
+    return user;
+  }
+
+  public String getName() {
+    return name;
+  }
+
+  public Boolean getOutputGranuleExtentFlag() {
+    return outputGranuleExtentFlag;
+  }
+
+  public GridType getOutputSamplingGridType() {
+    return outputSamplingGridType;
+  }
+
+  public Integer getRasterResolution() {
+    return rasterResolution;
+  }
+
+  public Integer getUtmZoneAdjust() {
+    return utmZoneAdjust;
+  }
+
+  public Integer getMgrsBandAdjust() {
+    return mgrsBandAdjust;
   }
 
   public String toString() {

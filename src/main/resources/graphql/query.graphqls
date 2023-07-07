@@ -1,6 +1,6 @@
 type Query {
     currentUser: User
+    l2RasterProduct(id: ID!): L2RasterProduct
     statusByProduct(product: ID!, limit: Int = 10): [Status!]
     statusByPrevious(after: ID!, limit: Int = 10): [Status!]
-    rasterDefinitions(id: ID, outputGranuleExtentFlag: Boolean, outputSamplingGridType: GridType, rasterResolution: Int, utmZoneAdjust: Int, mgrsBandAdjust: Int): [RasterDefinition!]
 }

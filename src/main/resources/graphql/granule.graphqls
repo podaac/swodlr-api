@@ -1,0 +1,5 @@
+type Granule {
+  id: ID!
+  timestamp: String!
+  uri: String!
+}

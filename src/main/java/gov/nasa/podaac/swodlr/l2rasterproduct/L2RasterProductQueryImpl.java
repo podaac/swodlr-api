@@ -1,4 +1,4 @@
-package gov.nasa.podaac.swodlr.rasterdefinition;
+package gov.nasa.podaac.swodlr.l2rasterproduct;
 
 import gov.nasa.podaac.swodlr.user.User;
 import java.util.List;
@@ -7,15 +7,12 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import org.hibernate.Session;
 import org.hibernate.query.Query;
-import org.hibernate.type.BooleanType;
 import org.hibernate.type.IntegerType;
-import org.hibernate.type.StringType;
 import org.hibernate.type.UUIDCharType;
 
-public class RasterDefinitionQueryImpl implements RasterDefinitionQuery {
+public class L2RasterProductQueryImpl implements L2RasterProductQuery {
   @PersistenceContext
   private EntityManager entityManager;
-
 
   /*
    * This implementation is utilized to workaround an JPA issue with the
@@ -44,37 +41,25 @@ public class RasterDefinitionQueryImpl implements RasterDefinitionQuery {
    *    - https://github.com/pgjdbc/pgjdbc/issues/247#issuecomment-78213991
    */
   @Override
-  public List<RasterDefinition> findByParameter(
-      User user,
-      UUID id,
-      Boolean outputGranuleExtentFlag,
-      GridType outputSamplingGridType,
-      Integer rasterResolution,
-      Integer utmZoneAdjust,
-      Integer mgrsBandAdjust
-  ) {  
+  public List<L2RasterProduct> findByUser(User user, UUID after, int limit) {
     String statement = """
-      SELECT * FROM \"RasterDefinitions\" WHERE
-      (\"userId\" = CAST(:userId as UUID)) AND
-      (:id is NULL OR \"id\" = CAST(:id as UUID)) AND
-      (:outputGranuleExtentFlag is NULL OR \"outputGranuleExtentFlag\" = :outputGranuleExtentFlag) AND
-      (:outputSamplingGridType is NULL OR \"outputSamplingGridType\" = :outputSamplingGridType) AND
-      (:rasterResolution is NULL OR \"rasterResolution\" = :rasterResolution) AND
-      (:utmZoneAdjust is NULL OR \"utmZoneAdjust\" = :utmZoneAdjust) AND
-      (:mgrsBandAdjust is NULL OR \"mgrsBandAdjust\" = :mgrsBandAdjust)
-      ORDER BY id
-        """;
-    
+      SELECT \"L2RasterProducts\".* FROM \"L2RasterProducts\"
+      JOIN \"ProductHistory\" ON \"ProductHistory\".\"rasterProductId\" = \"L2RasterProducts\".id
+      WHERE
+        (\"ProductHistory\".\"requestedById\" = CAST(:userId as UUID)) AND
+        (
+          (:after is NULL)
+          OR
+          (\"ProductHistory\".timestamp, \"ProductHistory\".\"rasterProductId\") < (SELECT timestamp, \"rasterProductId\" FROM \"ProductHistory\" WHERE \"requestedById\" = CAST(:userId as UUID) AND \"rasterProductId\" = CAST(:after as UUID))
+        )
+        ORDER BY \"ProductHistory\".timestamp DESC, \"ProductHistory\".\"rasterProductId\" DESC LIMIT :limit
+    """;
+
     Session session = entityManager.unwrap(Session.class);
-    Query<RasterDefinition> query = session.createNativeQuery(statement, RasterDefinition.class);
+    Query<L2RasterProduct> query = session.createNativeQuery(statement, L2RasterProduct.class);
     query.setParameter("userId", user.getId(), UUIDCharType.INSTANCE);
-    query.setParameter("id", id, UUIDCharType.INSTANCE);
-    query.setParameter("outputGranuleExtentFlag", outputGranuleExtentFlag, BooleanType.INSTANCE);
-    query.setParameter("outputSamplingGridType", outputSamplingGridType != null
-        ? outputSamplingGridType.toString() : null, StringType.INSTANCE);
-    query.setParameter("rasterResolution", rasterResolution, IntegerType.INSTANCE);
-    query.setParameter("utmZoneAdjust", utmZoneAdjust, IntegerType.INSTANCE);
-    query.setParameter("mgrsBandAdjust", mgrsBandAdjust, IntegerType.INSTANCE);
+    query.setParameter("after", after, UUIDCharType.INSTANCE);
+    query.setParameter("limit", limit, IntegerType.INSTANCE);
 
     return query.getResultList();
   }
