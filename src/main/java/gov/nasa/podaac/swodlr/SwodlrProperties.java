@@ -7,6 +7,6 @@ import org.springframework.boot.context.properties.ConstructorBinding;
 @ConfigurationProperties("swodlr")
 @ConstructorBinding
 public record SwodlrProperties(
-  Map<String, String> teaMapping,
-  String productCreateQueueUrl
+    Map<String, String> teaMapping,
+    String productCreateQueueUrl
 ) { }

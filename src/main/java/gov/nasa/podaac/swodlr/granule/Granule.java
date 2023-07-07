@@ -2,6 +2,7 @@ package gov.nasa.podaac.swodlr.granule;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import gov.nasa.podaac.swodlr.Utils;
+import gov.nasa.podaac.swodlr.exception.SwodlrException;
 import gov.nasa.podaac.swodlr.l2rasterproduct.L2RasterProduct;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -64,8 +65,10 @@ public class Granule {
         .getBean(TeaMapper.class)
         .convertS3Uri(URI.create(uri))
         .toString();
-    } catch (URISyntaxException ex) { }
-
-    return null;
+    } catch (URISyntaxException ex) {
+      throw new SwodlrException(
+        "Error generating download link. Please contact support"
+      );
+    }
   }
 }

@@ -6,7 +6,6 @@ import gov.nasa.podaac.swodlr.rasterdefinition.GridType;
 import gov.nasa.podaac.swodlr.status.Status;
 import gov.nasa.podaac.swodlr.user.User;
 import gov.nasa.podaac.swodlr.validation.ValidRasterOptions;
-
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
@@ -22,9 +21,6 @@ import javax.persistence.ManyToMany;
 import javax.persistence.OneToMany;
 import javax.persistence.OrderBy;
 import javax.persistence.Table;
-import javax.validation.constraints.PositiveOrZero;
-
-import org.hibernate.validator.constraints.Range;
 
 @Entity
 @Table(name = "L2RasterProducts")

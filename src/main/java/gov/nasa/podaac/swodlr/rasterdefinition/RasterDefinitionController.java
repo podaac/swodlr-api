@@ -64,13 +64,13 @@ public class RasterDefinitionController {
     return Mono.fromCallable(() -> {
       User user = userRef.fetch();
       RasterDefinition definition = new RasterDefinition(
-        user,
-        name,
-        outputGranuleExtentFlag,
-        outputSamplingGridType,
-        rasterResolution,
-        utmZoneAdjust,
-        mgrsBandAdjust
+          user,
+          name,
+          outputGranuleExtentFlag,
+          outputSamplingGridType,
+          rasterResolution,
+          utmZoneAdjust,
+          mgrsBandAdjust
       );
 
       definition = rasterDefinitionRepository.save(definition);

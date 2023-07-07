@@ -1,11 +1,10 @@
 package gov.nasa.podaac.swodlr.granule;
 
+import gov.nasa.podaac.swodlr.l2rasterproduct.L2RasterProduct;
 import java.util.Set;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.graphql.data.method.annotation.SchemaMapping;
 import org.springframework.stereotype.Controller;
-import gov.nasa.podaac.swodlr.l2rasterproduct.L2RasterProduct;
 
 @Controller
 public class GranuleController {

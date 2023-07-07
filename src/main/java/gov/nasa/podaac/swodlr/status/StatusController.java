@@ -41,7 +41,9 @@ public class StatusController {
   }
 
   @SchemaMapping(typeName = "L2RasterProduct", field = "status")
-  List<Status> getStatusForL2RasterProduct(L2RasterProduct product, @Argument UUID after, @Argument int limit) {
+  List<Status> getStatusForL2RasterProduct(
+      L2RasterProduct product, @Argument UUID after, @Argument int limit
+  ) {
     return statusRepository.findByProductId(product, after, limit);
   }
 }

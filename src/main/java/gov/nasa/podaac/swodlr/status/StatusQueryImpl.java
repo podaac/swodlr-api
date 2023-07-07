@@ -42,7 +42,9 @@ public class StatusQueryImpl implements StatusQuery {
    */
   @Override
   public List<Status> findByProductId(L2RasterProduct product, UUID after, int limit) {
-    String statement = """
+    @SuppressWarnings("LineLength")
+    String statement =
+        """
         SELECT * FROM \"Status\"
         WHERE 
           (\"productId\" = CAST(:productId AS UUID))
@@ -53,7 +55,7 @@ public class StatusQueryImpl implements StatusQuery {
             ((timestamp, id) < (SELECT timestamp, id FROM \"Status\" WHERE id = CAST(:after as UUID)))
           )
         ORDER BY timestamp DESC, id DESC LIMIT :limit
-    """;
+        """;
 
     Session session = entityManager.unwrap(Session.class);
     Query<Status> query = session.createNativeQuery(statement, Status.class);

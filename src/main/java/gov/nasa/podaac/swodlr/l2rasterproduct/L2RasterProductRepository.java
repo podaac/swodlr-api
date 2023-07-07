@@ -7,10 +7,12 @@ import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
-public interface L2RasterProductRepository extends JpaRepository<L2RasterProduct, UUID>, L2RasterProductQuery {
+public interface L2RasterProductRepository extends
+    JpaRepository<L2RasterProduct, UUID>, L2RasterProductQuery {
   List<L2RasterProduct> findById(L2RasterProduct product);
 
-  @Query("""
+  @Query(
+      """
       SELECT p FROM L2RasterProduct p WHERE
       p.cycle = :cycle and
       p.pass = :pass and
@@ -20,7 +22,8 @@ public interface L2RasterProductRepository extends JpaRepository<L2RasterProduct
       p.rasterResolution = :rasterResolution and
       p.utmZoneAdjust = :utmZoneAdjust and
       p.mgrsBandAdjust = :mgrsBandAdjust
-  """)
+      """
+  )
   Optional<L2RasterProduct> findOneByParameters(
       int cycle,
       int pass,

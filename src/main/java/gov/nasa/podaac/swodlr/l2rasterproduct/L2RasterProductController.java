@@ -6,9 +6,7 @@ import gov.nasa.podaac.swodlr.user.User;
 import gov.nasa.podaac.swodlr.user.UserReference;
 import java.util.List;
 import java.util.UUID;
-
 import javax.validation.constraints.NotNull;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.graphql.data.method.annotation.Argument;
 import org.springframework.graphql.data.method.annotation.ContextValue;

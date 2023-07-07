@@ -9,10 +9,10 @@ public class ValidateL2RasterProductOptions extends AbstractRasterOptionValidato
     context.disableDefaultConstraintViolation();
     
     boolean valid = validateCps(
-      product.getCycle(),
-      product.getPass(),
-      product.getScene(),
-      context
+        product.getCycle(),
+        product.getPass(),
+        product.getScene(),
+        context
     );
 
     if (!validateParameters(

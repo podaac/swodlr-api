@@ -1,9 +1,9 @@
 package gov.nasa.podaac.swodlr.queue;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import gov.nasa.podaac.swodlr.l2rasterproduct.L2RasterProduct;
 import gov.nasa.podaac.swodlr.rasterdefinition.GridType;
 import java.util.UUID;
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 public record ProductCreateMessage(
     @JsonProperty("product_id") UUID productId,
@@ -18,15 +18,15 @@ public record ProductCreateMessage(
 ) {
   public ProductCreateMessage(L2RasterProduct product) {
     this(
-      product.getId(),
-      product.getCycle(),
-      product.getPass(),
-      product.getScene(),
-      product.getOutputGranuleExtentFlag(),
-      product.getOutputSamplingGridType(),
-      product.getRasterResolution(),
-      product.getUtmZoneAdjust(),
-      product.getMgrsBandAdjust()
+        product.getId(),
+        product.getCycle(),
+        product.getPass(),
+        product.getScene(),
+        product.getOutputGranuleExtentFlag(),
+        product.getOutputSamplingGridType(),
+        product.getRasterResolution(),
+        product.getUtmZoneAdjust(),
+        product.getMgrsBandAdjust()
     );
   }
 }

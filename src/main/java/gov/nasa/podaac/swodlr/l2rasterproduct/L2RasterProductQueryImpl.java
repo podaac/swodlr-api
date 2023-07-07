@@ -42,18 +42,20 @@ public class L2RasterProductQueryImpl implements L2RasterProductQuery {
    */
   @Override
   public List<L2RasterProduct> findByUser(User user, UUID after, int limit) {
-    String statement = """
-      SELECT \"L2RasterProducts\".* FROM \"L2RasterProducts\"
-      JOIN \"ProductHistory\" ON \"ProductHistory\".\"rasterProductId\" = \"L2RasterProducts\".id
-      WHERE
-        (\"ProductHistory\".\"requestedById\" = CAST(:userId as UUID)) AND
-        (
-          (:after is NULL)
-          OR
-          (\"ProductHistory\".timestamp, \"ProductHistory\".\"rasterProductId\") < (SELECT timestamp, \"rasterProductId\" FROM \"ProductHistory\" WHERE \"requestedById\" = CAST(:userId as UUID) AND \"rasterProductId\" = CAST(:after as UUID))
-        )
-        ORDER BY \"ProductHistory\".timestamp DESC, \"ProductHistory\".\"rasterProductId\" DESC LIMIT :limit
-    """;
+    @SuppressWarnings("LineLength")
+    String statement =
+        """
+        SELECT \"L2RasterProducts\".* FROM \"L2RasterProducts\"
+        JOIN \"ProductHistory\" ON \"ProductHistory\".\"rasterProductId\" = \"L2RasterProducts\".id
+        WHERE
+          (\"ProductHistory\".\"requestedById\" = CAST(:userId as UUID)) AND
+          (
+            (:after is NULL)
+            OR
+            (\"ProductHistory\".timestamp, \"ProductHistory\".\"rasterProductId\") < (SELECT timestamp, \"rasterProductId\" FROM \"ProductHistory\" WHERE \"requestedById\" = CAST(:userId as UUID) AND \"rasterProductId\" = CAST(:after as UUID))
+          )
+          ORDER BY \"ProductHistory\".timestamp DESC, \"ProductHistory\".\"rasterProductId\" DESC LIMIT :limit
+        """;
 
     Session session = entityManager.unwrap(Session.class);
     Query<L2RasterProduct> query = session.createNativeQuery(statement, L2RasterProduct.class);

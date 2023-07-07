@@ -52,17 +52,19 @@ public class RasterDefinitionQueryImpl implements RasterDefinitionQuery {
       Integer rasterResolution,
       Integer utmZoneAdjust,
       Integer mgrsBandAdjust
-  ) {  
-    String statement = """
-      SELECT * FROM \"RasterDefinitions\" WHERE
-      (\"userId\" = CAST(:userId as UUID)) AND
-      (:id is NULL OR \"id\" = CAST(:id as UUID)) AND
-      (:outputGranuleExtentFlag is NULL OR \"outputGranuleExtentFlag\" = :outputGranuleExtentFlag) AND
-      (:outputSamplingGridType is NULL OR \"outputSamplingGridType\" = :outputSamplingGridType) AND
-      (:rasterResolution is NULL OR \"rasterResolution\" = :rasterResolution) AND
-      (:utmZoneAdjust is NULL OR \"utmZoneAdjust\" = :utmZoneAdjust) AND
-      (:mgrsBandAdjust is NULL OR \"mgrsBandAdjust\" = :mgrsBandAdjust)
-      ORDER BY id
+  ) {
+    @SuppressWarnings("LineLength")
+    String statement =
+        """
+        SELECT * FROM \"RasterDefinitions\" WHERE
+        (\"userId\" = CAST(:userId as UUID)) AND
+        (:id is NULL OR \"id\" = CAST(:id as UUID)) AND
+        (:outputGranuleExtentFlag is NULL OR \"outputGranuleExtentFlag\" = :outputGranuleExtentFlag) AND
+        (:outputSamplingGridType is NULL OR \"outputSamplingGridType\" = :outputSamplingGridType) AND
+        (:rasterResolution is NULL OR \"rasterResolution\" = :rasterResolution) AND
+        (:utmZoneAdjust is NULL OR \"utmZoneAdjust\" = :utmZoneAdjust) AND
+        (:mgrsBandAdjust is NULL OR \"mgrsBandAdjust\" = :mgrsBandAdjust)
+        ORDER BY id
         """;
     
     Session session = entityManager.unwrap(Session.class);

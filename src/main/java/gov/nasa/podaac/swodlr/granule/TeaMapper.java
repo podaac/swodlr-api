@@ -11,7 +11,7 @@ public class TeaMapper {
   @Autowired
   private SwodlrProperties swodlrProperties;
 
-  public URI convertS3Uri(URI s3Uri) throws URISyntaxException{
+  public URI convertS3Uri(URI s3Uri) throws URISyntaxException {
     String bucketName = s3Uri.getAuthority();
     String teaHost = swodlrProperties.teaMapping().get(bucketName);
     String path = "/" + bucketName + s3Uri.getPath();
