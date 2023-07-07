@@ -44,6 +44,11 @@ resource "random_password" "app_password" {
   override_special = "!#$%&*()-_=+[]{}<>?"
 }
 
+/* -- KMS Key -- */
+resource "aws_kms_key" "database" {
+  description = "${local.resource_prefix}-rds"
+}
+
 /* -- Database -- */
 resource "aws_db_instance" "database" {
   identifier = "${local.resource_prefix}-rds"
@@ -53,6 +58,7 @@ resource "aws_db_instance" "database" {
   storage_type = "gp2"
   skip_final_snapshot = true
   multi_az = true
+  kms_key_id = aws_kms_key.database.id
 
   vpc_security_group_ids = [aws_security_group.database.id]
   db_subnet_group_name = aws_db_subnet_group.default.id
