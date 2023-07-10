@@ -1,0 +1,37 @@
+mutation (
+    $cycle: Int!,
+    $pass: Int!,
+    $scene: Int!,
+    $outputGranuleExtentFlag: Boolean!,
+    $outputSamplingGridType: GridType!,
+    $rasterResolution: Int!,
+    $utmZoneAdjust: Int,
+    $mgrsBandAdjust: Int
+) {
+  generateL2RasterProduct(
+      cycle: $cycle,
+      pass: $pass,
+      scene: $scene,
+      outputGranuleExtentFlag: $outputGranuleExtentFlag,
+      outputSamplingGridType: $outputSamplingGridType,
+      rasterResolution: $rasterResolution,
+      utmZoneAdjust: $utmZoneAdjust,
+      mgrsBandAdjust: $mgrsBandAdjust
+  ) {
+	  id
+    cycle
+    pass
+    scene
+    outputGranuleExtentFlag
+    outputSamplingGridType
+    rasterResolution
+    utmZoneAdjust
+    mgrsBandAdjust
+    status {
+      id
+			timestamp
+      state
+      reason
+    }
+  }
+}

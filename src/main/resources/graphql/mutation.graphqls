@@ -1,3 +1,24 @@
 type Mutation {
-    createL2RasterProduct(definition: ID!, cycle: Int!, pass: Int!, scene: Int!): L2RasterProduct!
+    # -- Product --
+    generateL2RasterProduct(
+        cycle: Int!,
+        pass: Int!,
+        scene: Int!,
+        outputGranuleExtentFlag: Boolean!,
+        outputSamplingGridType: GridType!,
+        rasterResolution: Int!,
+        utmZoneAdjust: Int,
+        mgrsBandAdjust: Int
+    ): L2RasterProduct!
+
+    # -- Raster Definitions --
+    deleteRasterDefinition(id: ID!): Boolean!
+    createRasterDefinition(
+        name: String!,
+        outputGranuleExtentFlag: Boolean!,
+        outputSamplingGridType: GridType!,
+        rasterResolution: Int!,
+        utmZoneAdjust: Int,
+        mgrsBandAdjust: Int
+    ): RasterDefinition!
 }

@@ -3,21 +3,24 @@ package gov.nasa.podaac.swodlr;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
+import gov.nasa.podaac.swodlr.l2rasterproduct.L2RasterProduct;
 import gov.nasa.podaac.swodlr.l2rasterproduct.L2RasterProductRepository;
-import gov.nasa.podaac.swodlr.rasterdefinition.RasterDefinition;
-import gov.nasa.podaac.swodlr.rasterdefinition.RasterDefinitionRepository;
+import gov.nasa.podaac.swodlr.queue.ProductCreateQueue;
+import gov.nasa.podaac.swodlr.rasterdefinition.GridType;
 import gov.nasa.podaac.swodlr.status.State;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Random;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
@@ -25,10 +28,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.graphql.tester.AutoConfigureHttpGraphQlTester;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.graphql.test.tester.GraphQlTester.Response;
 import org.springframework.graphql.test.tester.HttpGraphQlTester;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
+import reactor.core.publisher.Mono;
 
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 @ActiveProfiles({"test"})
@@ -36,26 +42,19 @@ import org.springframework.test.context.TestPropertySource;
 @TestPropertySource({"file:./src/main/resources/application.properties", "classpath:application.properties"})
 @AutoConfigureHttpGraphQlTester
 public class L2RasterProductTests {
-  private RasterDefinition definition;
-
   @Autowired
   private HttpGraphQlTester graphQlTester;
 
   @Autowired
   private L2RasterProductRepository l2RasterProductRepository;
 
-  @Autowired
-  private RasterDefinitionRepository rasterDefinitionRepository;
+  @MockBean
+  private ProductCreateQueue productCreateQueue;
 
-  @BeforeAll
-  public void setupDefinition() {
-    definition = TestUtils.dummyDefinition();
-    rasterDefinitionRepository.save(definition);
-  }
-
-  @AfterAll
-  public void deleteDefinition() {
-    rasterDefinitionRepository.delete(definition);
+  @BeforeEach 
+  public void initMock() {
+    when(productCreateQueue.queueProduct(any(L2RasterProduct.class)))
+        .thenReturn(Mono.empty());
   }
 
   @AfterEach
@@ -67,29 +66,50 @@ public class L2RasterProductTests {
   public void createL2RasterProductWithValidDefinition() {
     LocalDateTime start = LocalDateTime.now();
 
-    Random random = new Random();
-    int cycle = random.nextInt(Integer.MAX_VALUE);
-    int pass = random.nextInt(Integer.MAX_VALUE);
-    int scene = random.nextInt(Integer.MAX_VALUE);
+    int cycle = 1;
+    int pass = 2;
+    int scene = 3;
+    boolean outputGranuleExtentFlag = true;
+    GridType gridType = GridType.UTM;
+    int rasterResolution = 1000;
+    int utmZoneAdjust = 1;
+    int mgrsBandAdjust = -1;
 
     Response response = graphQlTester
-        .documentName("mutation/createL2RasterProduct")
-        .variable("definition", definition.getId())
+        .documentName("mutation/generateL2RasterProduct")
         .variable("cycle", cycle)
         .variable("pass", pass)
         .variable("scene", scene)
+        .variable("outputGranuleExtentFlag", outputGranuleExtentFlag)
+        .variable("outputSamplingGridType", gridType)
+        .variable("rasterResolution", rasterResolution)
+        .variable("utmZoneAdjust", utmZoneAdjust)
+        .variable("mgrsBandAdjust", mgrsBandAdjust)
         .execute();
 
-    /* -- Definition -- */
+    /* -- Product -- */
+    // Check product options
     response
-        .path("createL2RasterProduct.definition.id")
-        .entity(UUID.class)
-        .isEqualTo(definition.getId());
+        .path("generateL2RasterProduct")
+        .entity(new ParameterizedTypeReference<Map<String, Object>>() {})
+        .satisfies(product -> {
+          assertEquals(product.get("cycle"), cycle);
+          assertEquals(product.get("pass"), pass);
+          assertEquals(product.get("scene"), scene);
+          assertEquals(product.get("outputGranuleExtentFlag"), outputGranuleExtentFlag);
+          assertEquals(product.get("outputSamplingGridType"), gridType.toString());
+          assertEquals(product.get("rasterResolution"), rasterResolution);
+          assertEquals(product.get("utmZoneAdjust"), utmZoneAdjust);
+          assertEquals(product.get("mgrsBandAdjust"), mgrsBandAdjust);
+        });
       
+    // Verify queue invoked on new product
+    verify(productCreateQueue).queueProduct(any());
+
     /* -- Status -- */
     // Timestamp
     response
-        .path("createL2RasterProduct.status[*].timestamp")
+        .path("generateL2RasterProduct.status[*].timestamp")
         .entityList(LocalDateTime.class)
         .hasSize(1)
         .satisfies(timestamps -> {
@@ -99,14 +119,14 @@ public class L2RasterProductTests {
 
     // State
     response
-        .path("createL2RasterProduct.status[*].state")
+        .path("generateL2RasterProduct.status[*].state")
         .entityList(String.class)
         .hasSize(1)
         .containsExactly(State.NEW.toString());
     
     // Reason
     response
-        .path("createL2RasterProduct.status[*].reason")
+        .path("generateL2RasterProduct.status[*].reason")
         .entityList(Object.class)
         .containsExactly(new Object[] {null});
   }
@@ -118,14 +138,17 @@ public class L2RasterProductTests {
     ));
 
     graphQlTester
-        .documentName("mutation/createL2RasterProduct")
-        .variable("definition", definition.getId())
+        .documentName("mutation/generateL2RasterProduct")
         .variable("cycle", -1)
         .variable("pass", -1)
         .variable("scene", -1)
+        .variable("outputGranuleExtentFlag", false)
+        .variable("outputSamplingGridType", GridType.GEO)
+        .variable("rasterResolution", 8)
         .execute()
         .errors()
         .satisfy(errors -> {
+          System.out.println(errors);
           assertEquals(
               invalidParams.size(),
               errors.size(),
@@ -133,9 +156,9 @@ public class L2RasterProductTests {
           );
 
           for (var error : errors) {
-            assertEquals("createL2RasterProduct", error.getPath());
+            assertEquals("generateL2RasterProduct", error.getPath());
             assertEquals("ValidationError", error.getExtensions().get("classification"));
-            assertEquals("must be greater than or equal to 0", error.getMessage());
+            assertEquals("must be >= 0 and < 1000", error.getMessage());
 
             var prop = error.getExtensions().get("property");
             assertTrue(invalidParams.contains(prop));
@@ -147,22 +170,34 @@ public class L2RasterProductTests {
   }
 
   @Test
-  public void createL2RasterProductWithInvalidDefinition() {
+  public void generateL2RasterProductWithInvalidParameters() {
     graphQlTester
-        .documentName("mutation/createL2RasterProduct")
-        .variable("definition", Utils.NULL_UUID)
+        .documentName("mutation/generateL2RasterProduct")
         .variable("cycle", 0)
         .variable("pass", 0)
         .variable("scene", 0)
+        .variable("outputGranuleExtentFlag", false)
+        .variable("outputSamplingGridType", "UTM")
+        .variable("rasterResolution", -1)
+        .variable("mgrsBandAdjust", -2)
+        .variable("utmZoneAdjust", 2)
         .execute()
         .errors()
         .satisfy(errors -> {
-          assertEquals(1, errors.size());
+          final Set<String> expectedProperties = new HashSet<>();
+          Collections.addAll(
+              expectedProperties,
+              "rasterResolution",
+              "mgrsBandAdjust",
+              "utmZoneAdjust"
+          );
 
-          var error = errors.get(0);
-          assertEquals("createL2RasterProduct", error.getPath());
-          assertEquals("DataFetchingException", error.getExtensions().get("classification"));
-          assertEquals("Definition not found", error.getMessage());
+          assertEquals(expectedProperties.size(), errors.size());
+          for (var error : errors) {
+            assertEquals("generateL2RasterProduct", error.getPath());
+            assertEquals("ValidationError", error.getExtensions().get("classification"));
+            assertTrue(expectedProperties.remove(error.getExtensions().get("property")));
+          }
         });
   }
 
@@ -173,17 +208,18 @@ public class L2RasterProductTests {
 
     LocalDateTime start = LocalDateTime.now();
 
-    // Create new mock products to fill pages for pagination
-    RasterDefinition definition = TestUtils.dummyDefinition();
-    rasterDefinitionRepository.save(definition);
+    final GridType gridType = GridType.GEO;
+    final int rasterResolution = 8;
 
     for (int i = 0; i < pageLimit * pages; i++) {
       graphQlTester
-          .documentName("mutation/createL2RasterProduct")
-          .variable("definition", definition.getId())
+          .documentName("mutation/generateL2RasterProduct")
           .variable("cycle", i)
           .variable("pass", i)
           .variable("scene", i)
+          .variable("outputGranuleExtentFlag", false)
+          .variable("outputSamplingGridType", gridType)
+          .variable("rasterResolution", rasterResolution)
           .executeAndVerify();
     }
 
@@ -193,6 +229,8 @@ public class L2RasterProductTests {
 
     // Iterate through pages
     for (int i = 0; i < pages; i++) {
+      final int j = (pageLimit * (pages - i));
+
       Response response = graphQlTester
           .documentName("query/currentUser_products")
           .variable("after", afterId)
@@ -212,43 +250,67 @@ public class L2RasterProductTests {
           })
           .get()
           .get(pageLimit - 1);
-
-      /* -- Definitions -- */
-      response
-          .path("currentUser.products[*].definition.id")
-          .entityList(UUID.class)
-          .containsExactly(Collections.nCopies(pageLimit, definition.getId()).toArray(UUID[]::new));
-
-      /* -- Cycle -- */
+  
+      /* -- cycle -- */
       response
           .path("currentUser.products[*].cycle")
           .entityList(Integer.class)
           .satisfies(ids -> {
-            int j = pages;
+            int k = j;
             for (int id : ids) {
-              assertEquals(--j, id);
+              assertEquals(--k, id);
             }
           });
 
-      /* -- Pass -- */
+      /* -- pass -- */
       response
           .path("currentUser.products[*].pass")
           .entityList(Integer.class)
           .satisfies(ids -> {
-            int j = pages;
+            int k = j;
             for (int id : ids) {
-              assertEquals(--j, id);
+              assertEquals(--k, id);
             }
           });
 
-      /* -- Scene -- */
+      /* -- scene -- */
       response
           .path("currentUser.products[*].scene")
           .entityList(Integer.class)
           .satisfies(ids -> {
-            int j = pages;
+            int k = j;
             for (int id : ids) {
-              assertEquals(--j, id);
+              assertEquals(--k, id);
+            }
+          });
+
+      /* -- outputGranuleExtentFlag -- */
+      response
+          .path("currentUser.products[*].outputGranuleExtentFlag")
+          .entityList(Boolean.class)
+          .satisfies(flags -> {
+            for (var flag : flags) {
+              assertEquals(flag, false);
+            }
+          });
+
+      /* -- outputSamplingGridType -- */
+      response
+          .path("currentUser.products[*].outputSamplingGridType")
+          .entityList(String.class)
+          .satisfies(gridTypes -> {
+            for (var testGridType : gridTypes) {
+              assertEquals(testGridType, gridType.toString());
+            }
+          });
+
+      /* -- rasterResolution -- */
+      response
+          .path("currentUser.products[*].rasterResolution")
+          .entityList(Integer.class)
+          .satisfies(rasterResolutions -> {
+            for (var testRasterResolution : rasterResolutions) {
+              assertEquals(testRasterResolution, rasterResolution);
             }
           });
 

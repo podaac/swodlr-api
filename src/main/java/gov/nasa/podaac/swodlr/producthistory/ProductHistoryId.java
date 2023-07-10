@@ -11,11 +11,11 @@ import javax.persistence.ManyToOne;
 @Embeddable
 public class ProductHistoryId implements Serializable {
   @ManyToOne(optional = false)
-  @JoinColumn(name = "requestedByID", nullable = false)
+  @JoinColumn(name = "requestedById", nullable = false)
   private User requestedBy;
 
   @ManyToOne(optional = false)
-  @JoinColumn(name = "rasterProductID", nullable = false)
+  @JoinColumn(name = "rasterProductId", nullable = false)
   private L2RasterProduct rasterProduct;
 
   public ProductHistoryId() { }

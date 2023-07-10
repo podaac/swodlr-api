@@ -1,8 +1,15 @@
 type L2RasterProduct {
     id: ID!
-    definition: RasterDefinition!
+    timestamp: String!
     cycle: Int!
     pass: Int!
     scene: Int!
-    status(limit: Int = 10): [Status!]!
+    outputGranuleExtentFlag: Boolean!
+    outputSamplingGridType: GridType!
+    rasterResolution: Int!
+    utmZoneAdjust: Int
+    mgrsBandAdjust: Int
+    
+    granules: [Granule!]!
+    status(after: ID, limit: Int = 10): [Status!]!
 }

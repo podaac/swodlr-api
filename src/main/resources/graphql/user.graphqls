@@ -1,4 +1,16 @@
 type User {
     id: ID!
-    products(after: ID, limit: Int = 10): [L2RasterProduct!]
+    email: String!
+    firstName: String!
+    lastName: String!
+
+    products(after: ID, limit: Int = 10): [L2RasterProduct!]!
+    rasterDefinitions(
+        id: ID,
+        outputGranuleExtentFlag: Boolean,
+        outputSamplingGridType: GridType,
+        rasterResolution: Int,
+        utmZoneAdjust: Int,
+        mgrsBandAdjust: Int
+    ): [RasterDefinition!]!
 }

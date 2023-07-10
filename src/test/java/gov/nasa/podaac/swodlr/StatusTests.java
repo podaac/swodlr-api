@@ -6,8 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import gov.nasa.podaac.swodlr.l2rasterproduct.L2RasterProduct;
 import gov.nasa.podaac.swodlr.l2rasterproduct.L2RasterProductRepository;
-import gov.nasa.podaac.swodlr.rasterdefinition.RasterDefinition;
-import gov.nasa.podaac.swodlr.rasterdefinition.RasterDefinitionRepository;
+import gov.nasa.podaac.swodlr.rasterdefinition.GridType;
 import gov.nasa.podaac.swodlr.status.State;
 import gov.nasa.podaac.swodlr.status.Status;
 import gov.nasa.podaac.swodlr.status.StatusRepository;
@@ -16,14 +15,13 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.time.LocalDateTime;
-import java.util.Collections;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
@@ -32,6 +30,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.graphql.tester.AutoConfigureHttpGraphQlTester;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.io.Resource;
 import org.springframework.graphql.test.tester.GraphQlTester.Response;
 import org.springframework.graphql.test.tester.HttpGraphQlTester;
@@ -44,7 +43,7 @@ import org.springframework.test.context.TestPropertySource;
 @TestPropertySource({"file:./src/main/resources/application.properties", "classpath:application.properties"})
 @AutoConfigureHttpGraphQlTester
 public class StatusTests {
-  private RasterDefinition definition;
+  private static final UUID NULL_UUID = UUID.fromString("00000000-0000-0000-0000-000000000000");
 
   @Autowired
   private HttpGraphQlTester graphQlTester;
@@ -55,26 +54,13 @@ public class StatusTests {
   @Autowired
   private L2RasterProductRepository l2RasterProductRepository;
 
-  @Autowired
-  private RasterDefinitionRepository rasterDefinitionRepository;
-
   @Value("classpath:frost.txt")
   private Resource frost;
 
-  @BeforeAll
-  public void setupDefinition() {
-    definition = TestUtils.dummyDefinition();
-    rasterDefinitionRepository.save(definition);
-  }
-
   @AfterAll
-  public void deleteDefinition() {
-    rasterDefinitionRepository.delete(definition);
-  }
-
-  @AfterEach
-  public void deleteProducts() {
+  public void tearDownMocks() {
     l2RasterProductRepository.deleteAll();
+    statusRepository.deleteAll();
   }
 
   @Test
@@ -90,23 +76,23 @@ public class StatusTests {
     int reasonIndex = 0;
 
     /* Setup mock data */
-    UUID productId = graphQlTester
-        .documentName("mutation/createL2RasterProduct")
-        .variable("definition", definition.getId())
-        .variable("cycle", 0)
-        .variable("pass", 0)
-        .variable("scene", 0)
-        .execute()
-        .path("createL2RasterProduct.id")
-        .entity(UUID.class)
-        .get();
-    
-    L2RasterProduct product = l2RasterProductRepository.findById(productId).get();
+    final L2RasterProduct mockProduct = new L2RasterProduct(
+        0,
+        1,
+        2,
+        false,
+        GridType.UTM,
+        1000,
+        0,
+        0
+    );
+    l2RasterProductRepository.save(mockProduct);
+
     LocalDateTime start = LocalDateTime.now();
 
     for (int i = 0; i < pages * pageLimit; i++) {
       Status status = new Status(
-          product,
+          mockProduct,
           stateEnums.get(stateIndex),
           reasons.get(++reasonIndex)
       );
@@ -123,7 +109,7 @@ public class StatusTests {
     for (int i = 0; i < pages; i++) {
       Response response = graphQlTester
           .documentName(i == 0 ? "query/statusByProduct" : "query/statusByPrevious")
-          .variable("product", productId)
+          .variable("product", mockProduct.getId())
           .variable("after", afterId)
           .variable("limit", pageLimit)
           .execute();
@@ -184,17 +170,25 @@ public class StatusTests {
       }
 
       /* Product */
-      // ID
       response
-          .path("status[*].product.id")
-          .entityList(UUID.class)
-          .containsExactly(Collections.nCopies(pageLimit, productId).toArray(UUID[]::new));
-      
-      // Definition
-      response
-          .path("status[*].product.definition.id")
-          .entityList(UUID.class)
-          .containsExactly(Collections.nCopies(pageLimit, definition.getId()).toArray(UUID[]::new));
+          .path("status[*].product")
+          .entityList(new ParameterizedTypeReference<Map<String, Object>>() {})
+          .satisfies(products -> {
+            Iterator<Map<String, Object>> it = products.iterator();
+            while (it.hasNext()) {
+              Map<String, Object> product = it.next();
+
+              assertEquals(mockProduct.getId().toString(), product.get("id"));
+              assertEquals(mockProduct.getCycle(), product.get("cycle"));
+              assertEquals(mockProduct.getPass(), product.get("pass"));
+              assertEquals(mockProduct.getScene(), product.get("scene"));
+              assertEquals(mockProduct.getOutputGranuleExtentFlag(), product.get("outputGranuleExtentFlag"));
+              assertEquals(mockProduct.getOutputSamplingGridType().toString(), product.get("outputSamplingGridType"));
+              assertEquals(mockProduct.getRasterResolution(), product.get("rasterResolution"));
+              assertEquals(mockProduct.getUtmZoneAdjust(), product.get("utmZoneAdjust"));
+              assertEquals(mockProduct.getMgrsBandAdjust(), product.get("mgrsBandAdjust"));
+            }
+          });
     }
   }
 
@@ -202,7 +196,7 @@ public class StatusTests {
   public void queryStatusWithInvalidProduct() {
     graphQlTester
         .documentName("query/statusByProduct")
-        .variable("product", Utils.NULL_UUID)
+        .variable("product", NULL_UUID)
         .execute()
         .errors()
         .satisfy(errors -> {
@@ -219,7 +213,7 @@ public class StatusTests {
   public void queryStatusWithInvalidAfter() {
     graphQlTester
         .documentName("query/statusByPrevious")
-        .variable("after", Utils.NULL_UUID)
+        .variable("after", NULL_UUID)
         .execute()
         .errors()
         .satisfy(errors -> {

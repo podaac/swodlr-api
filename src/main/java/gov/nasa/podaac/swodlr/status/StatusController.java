@@ -1,6 +1,5 @@
 package gov.nasa.podaac.swodlr.status;
 
-import gov.nasa.podaac.swodlr.Utils;
 import gov.nasa.podaac.swodlr.exception.SwodlrException;
 import gov.nasa.podaac.swodlr.l2rasterproduct.L2RasterProduct;
 import gov.nasa.podaac.swodlr.l2rasterproduct.L2RasterProductRepository;
@@ -28,7 +27,7 @@ public class StatusController {
       throw new SwodlrException("Invalid `product` parameter");
     }
 
-    return statusRepository.findByProductId(result.get(), Utils.NULL_UUID, limit);
+    return statusRepository.findByProductId(result.get(), null, limit);
   }
 
   @QueryMapping
@@ -42,7 +41,9 @@ public class StatusController {
   }
 
   @SchemaMapping(typeName = "L2RasterProduct", field = "status")
-  List<Status> getStatusForL2RasterProduct(L2RasterProduct product, @Argument int limit) {
-    return statusRepository.findByProductId(product, Utils.NULL_UUID, limit);
+  List<Status> getStatusForL2RasterProduct(
+      L2RasterProduct product, @Argument UUID after, @Argument int limit
+  ) {
+    return statusRepository.findByProductId(product, after, limit);
   }
 }

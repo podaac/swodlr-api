@@ -2,9 +2,13 @@ query ($after: ID, $limit: Int) {
     currentUser {
         products(after: $after, limit: $limit) {
             id
-            definition {
-                id
-            }
+            cycle
+            pass
+            scene
+            outputGranuleExtentFlag
+            outputSamplingGridType
+            rasterResolution
+            
             status {
                 id
                 timestamp

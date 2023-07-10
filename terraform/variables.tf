@@ -62,5 +62,9 @@ variable "active_profiles" {
 
 variable "frontend_uri_pattern" {
     type = string
-    nullable = true
+    default = ""
+}
+
+variable "tea_mapping" {
+    type = map(string)
 }

@@ -6,9 +6,14 @@ query ($after: ID!, $limit: Int) {
         reason
         product {
             id
-            definition {
-                id
-            }
+            cycle
+            pass
+            scene
+            outputGranuleExtentFlag
+            outputSamplingGridType
+            rasterResolution
+            utmZoneAdjust
+            mgrsBandAdjust
         }
     }
 }
