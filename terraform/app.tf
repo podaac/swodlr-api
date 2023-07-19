@@ -212,7 +212,7 @@ resource "aws_iam_role" "app_task" {
   })
 
   inline_policy {
-    name = "ecs-task-policy"
+    name = "AllowSSM"
     policy = jsonencode({
       Version = "2012-10-17"
       Statement = [
@@ -225,6 +225,23 @@ resource "aws_iam_role" "app_task" {
           ]
           Effect = "Allow"
           Resource = "arn:aws:ssm:${var.region}:${local.account_id}:parameter${local.service_path}/*"
+        }
+      ]
+    })
+  }
+
+  inline_policy {
+    name = "AllowProductQueue"
+    policy = jsonencode({
+      Version = "2012-10-17",
+      Statement = [
+        {
+          Sid = ""
+          Effect = "Allow",
+          Action = [
+            "sqs:SendMessage"
+          ]
+          Resource = aws_sqs_queue.product_create.arn
         }
       ]
     })
@@ -253,7 +270,7 @@ resource "aws_iam_role" "app_task_exec" {
   })
 
   inline_policy {
-    name = "ecs-task-exec-policy"
+    name = "allow-logging"
     policy = jsonencode({
       Version = "2012-10-17",
       Statement = [

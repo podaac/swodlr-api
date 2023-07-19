@@ -58,13 +58,14 @@ resource "aws_db_instance" "database" {
   storage_type = "gp2"
   skip_final_snapshot = true
   multi_az = true
-  kms_key_id = aws_kms_key.database.id
+  storage_encrypted = true
+  kms_key_id = aws_kms_key.database.arn
 
   vpc_security_group_ids = [aws_security_group.database.id]
   db_subnet_group_name = aws_db_subnet_group.default.id
 
   engine = "postgres"
-  engine_version = "14.3"
+  engine_version = "14.7"
 
   username = random_pet.admin_username.id
   password = random_password.admin_password.result
