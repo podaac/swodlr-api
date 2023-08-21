@@ -169,6 +169,26 @@ resource "aws_sqs_queue" "product_create" {
   visibility_timeout_seconds = 12 * 60 * 60     # 12 hours
 }
 
+resource "aws_sqs_queue_policy" "product_create" {
+  queue_url = aws_sqs_queue.product_create.url
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect = "Allow"
+      Principal = {
+        Service = "ecs-tasks.amazonaws.com"
+      }
+      Action = "sqs:SendMessage"
+      Resource = aws_sqs_queue.async_update.arn
+      Condition = {
+        ArnEquals = {
+          "aws:SourceArn" = aws_ecs_task_definition.app.arn
+        }
+      }
+    }]
+  })
+}
+
 resource "aws_sqs_queue" "async_update" {
   name = "${local.resource_prefix}-async-update-queue"
   kms_master_key_id = aws_kms_key.async_update.id
