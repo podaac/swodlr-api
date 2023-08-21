@@ -12,8 +12,9 @@ public interface L2RasterProductRepository extends
     JpaRepository<L2RasterProduct, UUID>, L2RasterProductQuery {
   List<L2RasterProduct> findById(L2RasterProduct product);
 
+  @SuppressWarnings("LineLength")
   @Query(
-      value="""
+      value = """
       SELECT * FROM \"L2RasterProducts\" WHERE
       \"cycle\" = :cycle AND
       \"pass\" = :pass AND
@@ -24,7 +25,7 @@ public interface L2RasterProductRepository extends
       (\"utmZoneAdjust\" = :utmZoneAdjust OR (:utmZoneAdjust is NULL and \"utmZoneAdjust\" is NULL)) AND
       (\"mgrsBandAdjust\" = :mgrsBandAdjust OR (:mgrsBandAdjust is NULL and \"mgrsBandAdjust\" is NULL))
       """,
-      nativeQuery=true
+      nativeQuery = true
   )
   Optional<L2RasterProduct> findOneByParameters(
       int cycle,
