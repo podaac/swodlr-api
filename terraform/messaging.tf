@@ -93,6 +93,83 @@ resource "aws_kms_key" "async_update" {
   deletion_window_in_days = 10
 }
 
+resource "aws_kms_key_policy" "async_update" {
+  key_id = aws_kms_key.async_update.id
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Sid = "Enable IAM User Permissions"
+        Effect = "Allow"
+        Principal = {
+          AWS = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:root"
+        }
+        Action = "kms:*"
+        Resource = aws_kms_key.async_update.arn
+      },
+
+      {
+        Sid = "Allow SNS topic to access the encryption keys"
+        Effect = "Allow"
+        Principal = {
+          Service = "sns.amazonaws.com"
+        }
+        Action = [
+          "kms:GenerateDataKey",
+          "kms:Decrypt"
+        ]
+        Resource = aws_kms_key.async_update.arn
+        Condition = {
+          ArnEquals = {
+            "aws:SourceArn" = aws_sns_topic.product_update.arn
+          }
+        }
+      }
+    ]
+  })
+}
+
+resource "aws_kms_key" "user_notify" {
+  description = "${local.resource_prefix}-user-notify"
+  deletion_window_in_days = 10
+}
+
+resource "aws_kms_key_policy" "user_notify" {
+  key_id = aws_kms_key.user_notify.id
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Sid = "Enable IAM User Permissions"
+        Effect = "Allow"
+        Principal = {
+          AWS = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:root"
+        }
+        Action = "kms:*"
+        Resource = aws_kms_key.user_notify.arn
+      },
+
+      {
+        Sid = "Allow SNS topic to access the encryption keys"
+        Effect = "Allow"
+        Principal = {
+          Service = "sns.amazonaws.com"
+        }
+        Action = [
+          "kms:GenerateDataKey",
+          "kms:Decrypt"
+        ]
+        Resource = aws_kms_key.user_notify.arn
+        Condition = {
+          ArnEquals = {
+            "aws:SourceArn" = aws_sns_topic.product_update.arn
+          }
+        }
+      }
+    ]
+  })
+}
+
 // - SNS
 resource "aws_sns_topic" "ingest" {
   name = "${local.resource_prefix}-ingest-topic"
@@ -131,6 +208,13 @@ resource "aws_sns_topic_subscription" "async_update_target" {
   topic_arn = aws_sns_topic.product_update.arn
   protocol = "sqs"
   endpoint = aws_sqs_queue.async_update.arn
+  raw_message_delivery = true
+}
+
+resource "aws_sns_topic_subscription" "user_notify_target" {
+  topic_arn = aws_sns_topic.product_update.arn
+  protocol = "sqs"
+  endpoint = aws_sqs_queue.user_notify.arn
   raw_message_delivery = true
 }
 
@@ -207,6 +291,33 @@ resource "aws_sqs_queue_policy" "async_update" {
       }
       Action = "sqs:SendMessage"
       Resource = aws_sqs_queue.async_update.arn
+      Condition = {
+        ArnEquals = {
+          "aws:SourceArn" = aws_sns_topic.product_update.arn
+        }
+      }
+    }]
+  })
+}
+
+resource "aws_sqs_queue" "user_notify" {
+  name = "${local.resource_prefix}-user-notify-queue"
+  kms_master_key_id = aws_kms_key.user_notify.id
+  message_retention_seconds = 7 * 24 * 60 * 60  # 1 week
+  visibility_timeout_seconds = 12 * 60 * 60     # 12 hours
+}
+
+resource "aws_sqs_queue_policy" "user_notify" {
+  queue_url = aws_sqs_queue.user_notify.url
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect = "Allow"
+      Principal = {
+        Service = "sns.amazonaws.com"
+      }
+      Action = "sqs:SendMessage"
+      Resource = aws_sqs_queue.user_notify.arn
       Condition = {
         ArnEquals = {
           "aws:SourceArn" = aws_sns_topic.product_update.arn
