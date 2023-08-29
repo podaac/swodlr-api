@@ -1,8 +1,8 @@
 /* -- ECS -- */
 locals {
   container_image = "${var.container_image}:${var.container_image_tag}"
-  container_vcpu = 1
-  container_memory = 2048
+  container_vcpu = 2
+  container_memory = 4096
 }
 
 resource "aws_ecs_cluster" "default" {
