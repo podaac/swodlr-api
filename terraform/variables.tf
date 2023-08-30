@@ -3,6 +3,11 @@ variable "app_name" {
     type = string
 }
 
+variable "app_base_path" {
+    default = "/api"
+    type = string
+}
+
 variable "db_name" {
     default = "swodlr"
     type = string

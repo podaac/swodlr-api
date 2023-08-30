@@ -28,7 +28,7 @@ resource "aws_lb_target_group" "app" {
   health_check {
     enabled = true
     matcher = "200,302"
-    path = "/"
+    path = var.app_base_path
   }
 }
 

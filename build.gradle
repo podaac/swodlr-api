@@ -16,7 +16,7 @@ repositories {
 }
 
 dependencies {
-    implementation platform('io.awspring.cloud:spring-cloud-aws-dependencies:3.0.0')
+    implementation platform('io.awspring.cloud:spring-cloud-aws-dependencies:3.0.2')
 
     implementation 'org.apache.commons:commons-lang3:3.12.0'
     implementation 'org.apache.commons:commons-compress:1.22'
@@ -29,14 +29,14 @@ dependencies {
     implementation 'org.tukaani:xz:1.9'
     implementation 'io.awspring.cloud:spring-cloud-aws-starter-parameter-store'
     implementation 'io.awspring.cloud:spring-cloud-aws-starter-sqs'
-    implementation 'org.postgresql:postgresql:42.5.0'
+    implementation 'org.postgresql:postgresql:42.5.4'
     implementation 'com.zaxxer:HikariCP:5.0.1'
-    implementation 'io.netty:netty-all:4.1.82.Final'
+    implementation 'io.netty:netty-all:4.1.90.Final'
     annotationProcessor "org.springframework.boot:spring-boot-configuration-processor"
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.graphql:spring-graphql-test'
-    testImplementation 'com.h2database:h2:2.1.214'
+    testImplementation 'com.h2database:h2:2.1.214' // Bumping to 2.2.220 causes tests to fail with "JdbcSQLSyntaxErrorException: Function alias "gen_random_uuid" already exists; SQL statement: CREATE ALIAS IF NOT EXISTS gen_random_uuid"
 }
 
 checkstyle {

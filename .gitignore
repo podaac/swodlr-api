@@ -54,3 +54,4 @@ bin/
 
 # IntelliJ Idea
 .idea
+/terraform/tfplan

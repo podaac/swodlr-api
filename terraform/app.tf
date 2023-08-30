@@ -94,6 +94,13 @@ resource "aws_cloudwatch_log_group" "app" {
 }
 
 /* -- App Config -- */
+resource "aws_ssm_parameter" "app_base_path" {
+  name = "${local.app_path}/spring.webflux.base-path"
+  type = "String"
+  value = var.app_base_path
+  overwrite = true
+}
+
 resource "aws_ssm_parameter" "app_db_url" {
   name = "${local.app_path}/spring.datasource.url"
   type = "String"
