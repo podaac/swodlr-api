@@ -20,7 +20,7 @@ public interface L2RasterProductRepository extends
       \"pass\" = :pass AND
       \"scene\" = :scene AND
       \"outputGranuleExtentFlag\" = :outputGranuleExtentFlag AND
-      \"outputSamplingGridType\" = :#{#} AND
+      \"outputSamplingGridType\" = :#{#gridType.toString()} AND
       \"rasterResolution\" = :rasterResolution AND
       (\"utmZoneAdjust\" = :utmZoneAdjust OR (:utmZoneAdjust is NULL and \"utmZoneAdjust\" is NULL)) AND
       (\"mgrsBandAdjust\" = :mgrsBandAdjust OR (:mgrsBandAdjust is NULL and \"mgrsBandAdjust\" is NULL))
