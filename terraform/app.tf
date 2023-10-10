@@ -98,49 +98,42 @@ resource "aws_ssm_parameter" "app_base_path" {
   name = "${local.app_path}/spring.webflux.base-path"
   type = "String"
   value = var.app_base_path
-  overwrite = true
 }
 
 resource "aws_ssm_parameter" "app_db_url" {
   name = "${local.app_path}/spring.datasource.url"
   type = "String"
   value = "jdbc:postgresql://${aws_db_instance.database.endpoint}/${var.db_name}"
-  overwrite = true
 }
 
 resource "aws_ssm_parameter" "app_db_username" {
   name = "${local.app_path}/spring.datasource.username"
   type = "String"
   value = aws_ssm_parameter.db_app_username.value
-  overwrite = true
 }
 
 resource "aws_ssm_parameter" "app_db_password" {
   name = "${local.app_path}/spring.datasource.password"
   type = "SecureString"
   value = aws_ssm_parameter.db_app_password.value
-  overwrite = true
 }
 
 resource "aws_ssm_parameter" "app_edl_client_id" {
   name = "${local.app_path}/spring.security.oauth2.client.registration.edl.client-id"
   type = "String"
   value = var.edl_client_id
-  overwrite = true
 }
 
 resource "aws_ssm_parameter" "app_edl_client_secret" {
   name = "${local.app_path}/spring.security.oauth2.client.registration.edl.client-secret"
   type = "String"
   value = var.edl_client_secret
-  overwrite = true
 }
 
 resource "aws_ssm_parameter" "app_session_encryption_key" {
   name = "${local.app_path}/swodlr.security.session-encryption-key"
   type = "SecureString"
   value = var.session_encryption_key
-  overwrite = true
 }
 
 resource "aws_ssm_parameter" "app_frontend_uri_pattern" {
@@ -148,7 +141,6 @@ resource "aws_ssm_parameter" "app_frontend_uri_pattern" {
   count = length(var.frontend_uri_pattern) > 0 ? 1 : 0
   type = "String"
   value = var.frontend_uri_pattern
-  overwrite = true
 }
 
 resource "aws_ssm_parameter" "tea_mapping" {
@@ -157,14 +149,18 @@ resource "aws_ssm_parameter" "tea_mapping" {
   name = "${local.app_path}/swodlr.tea-mapping.${each.key}"
   type = "String"
   value = each.value
-  overwrite = true
 }
 
 resource "aws_ssm_parameter" "app_product_create_queue_url" {
   name = "${local.app_path}/swodlr.product-create-queue-url"
   type = "SecureString"
   value = aws_sqs_queue.product_create.url
-  overwrite = true
+}
+
+resource "aws_ssm_parameter" "available_tiles_table_name" {
+  name = "${local.app_path}/swodlr.available-tiles-table-name"
+  type = "String"
+  value = aws_dynamodb_table.available_tiles.name
 }
 
 /* -- Security -- */
@@ -289,6 +285,24 @@ resource "aws_iam_role" "app_task_exec" {
             "logs:PutLogEvents"
           ]
           Resource = "*"
+        }
+      ]
+    })
+  }
+
+  inline_policy {
+    name = "allow-avalible-tiles-table"
+    policy = jsonencode({
+      Version = "2012-10-17",
+      Statement = [
+        {
+          Sid = ""
+          Action = [
+            "dynamodb:BatchGetItem",
+            "dynamodb:GetItem"
+          ]
+          Effect   = "Allow"
+          Resource = aws_dynamodb_table.available_tiles.arn
         }
       ]
     })
