@@ -13,7 +13,7 @@ public abstract class AbstractRasterOptionValidator<T> implements
   );
 
   static final Set<Integer> VALID_UTM_RESOLUTIONS = Set.of(
-      100, 125, 200, 250, 500, 1000, 2500, 5000, 10000
+      90, 100, 120, 125, 200, 250, 500, 1000, 2500, 5000, 10000
   );
 
   static final Set<Integer> VALID_ADJUSTS = Set.of(-1, 0, 1);
