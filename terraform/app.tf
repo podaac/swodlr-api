@@ -49,6 +49,15 @@ resource "aws_ecs_service" "app" {
   }
 }
 
+locals {
+  swodlr_profiles_active = length(var.active_profiles) > 0 ? [{
+    name = "SPRING_PROFILES_ACTIVE",
+    value = join(",", var.active_profiles)
+  }] : []
+
+  swodlr_app_env = concat([], local.swodlr_profiles_active)
+}
+
 resource "aws_ecs_task_definition" "app" {
   family = "${local.resource_prefix}-app-task"
   requires_compatibilities = ["FARGATE"]
@@ -61,12 +70,7 @@ resource "aws_ecs_task_definition" "app" {
     name = "${local.resource_prefix}-app"
     image = local.container_image
 
-    environment = [
-      {
-        name = "SPRING_PROFILES_ACTIVE",
-        value = join(",", var.active_profiles)
-      }
-    ]
+    environment = local.swodlr_app_env
 
     portMappings = [{
       containerPort = 8080
