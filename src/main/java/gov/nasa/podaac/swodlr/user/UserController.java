@@ -4,7 +4,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.graphql.data.method.annotation.ContextValue;
 import org.springframework.graphql.data.method.annotation.QueryMapping;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
 
 @Controller
 public class UserController {
@@ -15,7 +14,4 @@ public class UserController {
   public User currentUser(@ContextValue UserReference userRef) {
     return userRef.fetch();
   }
-
-  @GetMapping
-  public 
 }

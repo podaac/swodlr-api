@@ -4,6 +4,8 @@ import gov.nasa.podaac.swodlr.SwodlrProperties;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
@@ -14,6 +16,7 @@ import software.amazon.awssdk.services.dynamodb.model.KeysAndAttributes;
 
 @Service
 public class SceneLookupService {
+  private final Logger logger = LoggerFactory.getLogger(getClass());
   private final DynamoDbAsyncClient dynamoDbClient;
   private final SwodlrProperties swodlrProperties;
 
@@ -41,50 +44,47 @@ public class SceneLookupService {
         }
 
         KeysAndAttributes keyAndAttrs = KeysAndAttributes.builder()
-          .keys(keys)
-          .build();
+            .keys(keys)
+            .build();
 
         return dynamoDbClient.batchGetItem((request) -> {
           request.requestItems(Map.of(
-            swodlrProperties.availableTilesTableName(),
-            keyAndAttrs
+              swodlrProperties.availableTilesTableName(),
+              keyAndAttrs
           ));
         });
       })
       .flatMap((batchResponse) -> {
-        if (batchResponse.hasUnprocessedKeys()) {
+        if (batchResponse.hasUnprocessedKeys() && !batchResponse.unprocessedKeys().isEmpty()) {
+          logger.debug("Unprocessed keys found");
           return Mono.just(false);
         }
 
         List<Map<String, AttributeValue>> responses = batchResponse
-          .responses()
-          .get(swodlrProperties.availableTilesTableName());
+            .responses()
+            .get(swodlrProperties.availableTilesTableName());
 
-        for (var response : responses) {
-          if (!response.containsKey("tile_id")) {
-            return Mono.just(false);
-          }
-        }
-
-        return Mono.just(true);
+        logger.debug("Responses size: {}", responses.size());
+        return Mono.just(responses.size() == 16);
       });
   }
 
   private List<String> generateTileList(int cycle, int pass, int scene) {
-    final char[] DIRECTIONS = {'L', 'R'};
-    final String[] PRODUCTS = {"PIXC", "PIXCVec"};
+    final char[] directions = {'L', 'R'};
+    final String[] products = {"PIXC", "PIXCVec"};
 
     List<String> tiles = new ArrayList<>(8);
 
-    for (String product : PRODUCTS) {
+    for (String product : products) {
       for (int tile = (scene * 2) - 2; tile <= (scene * 2) + 1; tile++) {
-        for (char direction : DIRECTIONS) {
-          String cpsString = "%s,%d,%d,%d%c".formatted(product, cycle, pass, scene, direction);
+        for (char direction : directions) {
+          String cpsString = "%s,%d,%d,%d%c".formatted(product, cycle, pass, tile, direction);
           tiles.add(cpsString);
         }
       }
     }
 
+    logger.debug("Generated tile list: {}", tiles.toString());
     return tiles;
   }
 }
