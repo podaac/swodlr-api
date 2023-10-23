@@ -8,5 +8,6 @@ import org.springframework.boot.context.properties.ConstructorBinding;
 @ConstructorBinding
 public record SwodlrProperties(
     Map<String, String> teaMapping,
-    String productCreateQueueUrl
+    String productCreateQueueUrl,
+    String availableTilesTableName
 ) { }

@@ -29,6 +29,7 @@ dependencies {
     implementation 'org.tukaani:xz:1.9'
     implementation 'io.awspring.cloud:spring-cloud-aws-starter-parameter-store'
     implementation 'io.awspring.cloud:spring-cloud-aws-starter-sqs'
+    implementation 'io.awspring.cloud:spring-cloud-aws-starter-dynamodb'
     implementation 'org.postgresql:postgresql:42.5.4'
     implementation 'com.zaxxer:HikariCP:5.0.1'
     implementation 'io.netty:netty-all:4.1.90.Final'

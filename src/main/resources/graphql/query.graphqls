@@ -3,4 +3,5 @@ type Query {
     l2RasterProduct(id: ID!): L2RasterProduct
     statusByProduct(product: ID!, limit: Int = 10): [Status!]
     statusByPrevious(after: ID!, limit: Int = 10): [Status!]
+    availableScene(cycle: Int!, pass: Int!, scene: Int!): Boolean!
 }
