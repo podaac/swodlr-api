@@ -12,7 +12,11 @@ public class SceneLookupController {
   private SceneLookupService sceneLookupService;
 
   @QueryMapping
-  public Mono<Boolean> availableScene(@Argument int cycle, @Argument int pass, @Argument int scene) {
+  public Mono<Boolean> availableScene(
+      @Argument int cycle,
+      @Argument int pass,
+      @Argument int scene
+  ) {
     return sceneLookupService.sceneExists(cycle, pass, scene);
   }
 }
