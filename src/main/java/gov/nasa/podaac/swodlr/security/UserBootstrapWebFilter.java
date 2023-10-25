@@ -91,6 +91,7 @@ public class UserBootstrapWebFilter implements WebFilter {
                     userRepository.save(user);
                     UserReference userReference = new UserReference(user);
                     attributes.put(SESSION_ATTRIBUTE_KEY, userReference);
+                    session.save();
 
                     return Mono.empty();
                   });
