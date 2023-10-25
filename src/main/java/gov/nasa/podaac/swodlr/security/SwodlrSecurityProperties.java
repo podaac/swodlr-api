@@ -6,7 +6,6 @@ import com.nimbusds.jose.KeyLengthException;
 import com.nimbusds.jose.crypto.DirectDecrypter;
 import com.nimbusds.jose.crypto.DirectEncrypter;
 import java.time.Duration;
-import java.util.regex.Pattern;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.ConstructorBinding;
 import org.springframework.security.crypto.codec.Hex;
@@ -17,7 +16,8 @@ public class SwodlrSecurityProperties {
   private final JWEEncrypter encrypter;
   private final JWEDecrypter decrypter;
   private final Duration sessionLength;
-  private final Pattern frontendUriPattern;
+  private final String edlBaseUrl;
+  private final String edlClientId;
 
   /**
    * Configuration properties for swodlr sessions.
@@ -27,12 +27,11 @@ public class SwodlrSecurityProperties {
    * @param sessionLength How long sessions are valid
    */
   public SwodlrSecurityProperties(
-      String frontendUriPattern,
       String sessionEncryptionKey,
-      Duration sessionLength
+      Duration sessionLength,
+      String edlBaseUrl,
+      String edlClientId
   ) {
-    this.frontendUriPattern = Pattern.compile(frontendUriPattern);
-
     byte[] key = Hex.decode(sessionEncryptionKey);
 
     if (key.length != 16) {
@@ -45,11 +44,10 @@ public class SwodlrSecurityProperties {
     } catch (KeyLengthException e) {
       throw new IllegalArgumentException("SWODLR only supports 128 bit encryption keys.", e);
     }
+    
     this.sessionLength = sessionLength;
-  }
-
-  public Pattern frontendUriPattern() {
-    return frontendUriPattern;
+    this.edlBaseUrl = edlBaseUrl;
+    this.edlClientId = edlClientId;
   }
 
   public JWEEncrypter encrypter() {
@@ -62,5 +60,13 @@ public class SwodlrSecurityProperties {
 
   public Duration sessionLength() {
     return sessionLength;
+  }
+
+  public String edlBaseUrl() {
+    return edlBaseUrl;
+  }
+
+  public String edlClientId() {
+    return edlClientId;
   }
 }
