@@ -24,6 +24,10 @@ public class WebSecurityConfig {
     http
         .cors().and()
         .csrf().disable()
+        .authorizeExchange((exchange) -> {
+          exchange.pathMatchers("/edl/*").permitAll();
+          exchange.anyExchange().denyAll();
+        })
         .oauth2ResourceServer((resourceServer) -> {
           resourceServer.jwt((jwt) -> {
             jwt.jwkSetUri(securityProperties.edlBaseUrl() + "/export_edl_jwks");
