@@ -25,7 +25,7 @@ public class WebSecurityConfig {
         .cors().and()
         .csrf().disable()
         .authorizeExchange((exchange) -> {
-          exchange.pathMatchers("/edl/*").permitAll();
+          exchange.pathMatchers("/edl/**").permitAll();
           exchange.anyExchange().denyAll();
         })
         .oauth2ResourceServer((resourceServer) -> {

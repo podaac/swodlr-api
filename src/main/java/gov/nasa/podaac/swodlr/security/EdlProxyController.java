@@ -24,7 +24,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 import reactor.core.publisher.Mono;
 
 @RestController
-@RequestMapping("edl")
+@RequestMapping("edl/oauth")
 public class EdlProxyController {
   public static final String CODE_VERIFIER_SESSION_KEY = "edl-code-verifier";
 
