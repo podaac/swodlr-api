@@ -26,7 +26,7 @@ import reactor.core.publisher.Mono;
 @RestController
 @RequestMapping("edl/oauth")
 public class EdlProxyController {
-  public static final String CODE_VERIFIER_SESSION_KEY = "edl-code-verifier";
+  public static final String CODE_CHALLENGE_SESSION_KEY = "edl-code-challenge";
 
   private final Logger logger = LoggerFactory.getLogger(getClass());
   private final SwodlrSecurityProperties securityProperties;
@@ -52,7 +52,7 @@ public class EdlProxyController {
       @NotNull @RequestParam("response_type") String responseType,
       @NotNull @RequestParam("client_id") String clientId,
       @NotNull @RequestParam("redirect_uri") String redirectUri,
-      @NotNull @RequestParam("code_verifier") String codeVerifier) {
+      @NotNull @RequestParam("code_challenge") String codeChallenge) {
     return Mono.defer(() -> {
       if (!responseType.equals("code")) {
         return Mono.just(
@@ -69,7 +69,7 @@ public class EdlProxyController {
       }
 
       return exchange.getSession().flatMap((session) -> {
-        session.getAttributes().put(CODE_VERIFIER_SESSION_KEY, codeVerifier);
+        session.getAttributes().put(CODE_CHALLENGE_SESSION_KEY, codeChallenge);
         session.save();
 
         URI edlAuthorizeUri = UriComponentsBuilder
@@ -94,17 +94,17 @@ public class EdlProxyController {
   public Mono<ResponseEntity<Map<String, Object>>> postToken(
       ServerWebExchange exchange,
       @RequestParam("grant_type") String grantType,
-      @RequestParam("code_challenge") String codeChallenge,
+      @RequestParam("code_verifier") String codeVerifier,
       @RequestParam("redirect_uri") String redirectUri,
-      @RequestParam(name="code", required=false) String code,
-      @RequestParam(name="refresh_token", required=false) String refreshToken
+      @RequestParam(name = "code", required = false) String code,
+      @RequestParam(name = "refresh_token", required = false) String refreshToken
   ) {
     return exchange.getSession().flatMap((session) -> {
       // First verify PKCE
-      String codeVerifier = session.getAttribute(CODE_VERIFIER_SESSION_KEY);
+      String codeChallenge = session.getAttribute(CODE_CHALLENGE_SESSION_KEY);
 
       // Hash the code challenge with SHA256
-      String hash = DigestUtils.sha256Hex(codeChallenge);
+      String hash = DigestUtils.sha256Hex(codeVerifier);
       if (!hash.equals(codeVerifier)) {
         logger.debug(
             "Code challenge failed; verifier: %s, challenge: %s, hash: %s",
@@ -119,7 +119,7 @@ public class EdlProxyController {
       }
 
       logger.debug("PKCE check passed");
-      session.getAttributes().remove(CODE_VERIFIER_SESSION_KEY);
+      session.getAttributes().remove(CODE_CHALLENGE_SESSION_KEY);
       session.save();
 
       return edlClient
