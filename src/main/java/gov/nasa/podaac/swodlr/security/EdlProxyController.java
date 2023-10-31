@@ -93,11 +93,11 @@ public class EdlProxyController {
   @PostMapping("token")
   public Mono<ResponseEntity<Map<String, Object>>> postToken(
       ServerWebExchange exchange,
-      @NotNull @RequestParam("grant_type") String grantType,
-      @NotNull @RequestParam("code_challenge") String codeChallenge,
-      @NotNull @RequestParam("redirect_uri") String redirectUri,
-      @RequestParam("code") String code,
-      @RequestParam("refresh_token") String refreshToken
+      @RequestParam("grant_type") String grantType,
+      @RequestParam("code_challenge") String codeChallenge,
+      @RequestParam("redirect_uri") String redirectUri,
+      @RequestParam(name="code", required=false) String code,
+      @RequestParam(name="refresh_token", required=false) String refreshToken
   ) {
     return exchange.getSession().flatMap((session) -> {
       // First verify PKCE
