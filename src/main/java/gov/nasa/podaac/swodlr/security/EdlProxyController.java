@@ -22,6 +22,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.util.UriComponentsBuilder;
 import reactor.core.publisher.Mono;
+import software.amazon.awssdk.core.Response;
 
 @RestController
 @RequestMapping("edl/oauth")
@@ -49,11 +50,22 @@ public class EdlProxyController {
   @GetMapping("authorize")
   public Mono<ResponseEntity<?>> getAuthorize(
       ServerWebExchange exchange,
-      @NotNull @RequestParam("response_type") String responseType,
-      @NotNull @RequestParam("client_id") String clientId,
-      @NotNull @RequestParam("redirect_uri") String redirectUri,
-      @NotNull @RequestParam("code_challenge") String codeChallenge) {
+      @RequestParam("response_type") String responseType,
+      @RequestParam("client_id") String clientId,
+      @RequestParam("redirect_uri") String redirectUri,
+      @RequestParam("code_challenge") String codeChallenge,
+      @RequestParam("code_challenge_method") String codeChallengeMethod
+  ) {
     return Mono.defer(() -> {
+      if (!codeChallengeMethod.equals("S256")) {
+        return Mono.just(
+          ResponseEntity.badRequest().body(Map.ofEntries(
+            Map.entry("error", "invalid_request"),
+            Map.entry("error_description", "code_challenge_method can only be 'S256'")
+          ))
+        );
+      }
+
       if (!responseType.equals("code")) {
         return Mono.just(
             ResponseEntity.badRequest().body(Map.ofEntries(
@@ -105,15 +117,15 @@ public class EdlProxyController {
 
       // Hash the code challenge with SHA256
       String hash = DigestUtils.sha256Hex(codeVerifier);
-      if (!hash.equals(codeVerifier)) {
+      if (!hash.equals(codeChallenge)) {
         logger.debug(
-            "Code challenge failed; verifier: %s, challenge: %s, hash: %s",
+            "Code verification failed; verifier: %s, challenge: %s, hash: %s",
             codeVerifier, codeChallenge, hash
         );
         return Mono.just(
           ResponseEntity.badRequest().body(Map.ofEntries(
             Map.entry("error", "invalid_request"),
-            Map.entry("error_details", "code challenge check failed")
+            Map.entry("error_details", "code verification failed")
           ))
         );
       }
