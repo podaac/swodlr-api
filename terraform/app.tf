@@ -253,6 +253,21 @@ resource "aws_iam_role" "app_task" {
       ]
     })
   }
+
+  inline_policy {
+    name = "AllowQueryAvailableTiles"
+    policy = jsonencode({
+      Version = "2012-10-17",
+      Statement = [
+        {
+          Sid = ""
+          Effect = "Allow",
+          Action = ["dynamodb:BatchGetItem", "dynamodb:GetItem"]
+          Resource = aws_dynamodb_table.available_tiles.arn
+        }
+      ]
+    })
+  }
 }
 
 resource "aws_iam_role" "app_task_exec" {
