@@ -4,7 +4,9 @@ import java.net.URI;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import javax.validation.constraints.NotNull;
+
+import javax.validation.constraints.Size;
+
 import org.apache.commons.codec.digest.DigestUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,7 +24,6 @@ import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.util.UriComponentsBuilder;
 import reactor.core.publisher.Mono;
-import software.amazon.awssdk.core.Response;
 
 @RestController
 @RequestMapping("edl/oauth")
@@ -53,7 +54,7 @@ public class EdlProxyController {
       @RequestParam("response_type") String responseType,
       @RequestParam("client_id") String clientId,
       @RequestParam("redirect_uri") String redirectUri,
-      @RequestParam("code_challenge") String codeChallenge,
+      @RequestParam("code_challenge") @Size(min=64, max=64) String codeChallenge,
       @RequestParam("code_challenge_method") String codeChallengeMethod
   ) {
     return Mono.defer(() -> {
@@ -112,27 +113,36 @@ public class EdlProxyController {
       @RequestParam(name = "refresh_token", required = false) String refreshToken
   ) {
     return exchange.getSession().flatMap((session) -> {
-      // First verify PKCE
-      String codeChallenge = session.getAttribute(CODE_CHALLENGE_SESSION_KEY);
+      if (grantType.equals("authorization_code")) {
+        // First verify PKCE
+        String codeChallenge = session.getAttribute(CODE_CHALLENGE_SESSION_KEY);
 
-      // Hash the code challenge with SHA256
-      String hash = DigestUtils.sha256Hex(codeVerifier);
-      if (!hash.equals(codeChallenge)) {
-        logger.debug(
-            "Code verification failed; verifier: %s, challenge: %s, hash: %s",
-            codeVerifier, codeChallenge, hash
-        );
+        // Hash the code challenge with SHA256
+        String hash = DigestUtils.sha256Hex(codeVerifier);
+        if (!hash.equals(codeChallenge)) {
+          logger.debug(
+              "Code verification failed; verifier: %s, challenge: %s, hash: %s",
+              codeVerifier, codeChallenge, hash
+          );
+          return Mono.just(
+            ResponseEntity.badRequest().body(Map.ofEntries(
+              Map.entry("error", "invalid_request"),
+              Map.entry("error_details", "code verification failed")
+            ))
+          );
+        }
+
+        logger.debug("PKCE check passed");
+        session.getAttributes().remove(CODE_CHALLENGE_SESSION_KEY);
+        session.save();
+      } else if (!grantType.equals("refresh_token")) {
         return Mono.just(
           ResponseEntity.badRequest().body(Map.ofEntries(
             Map.entry("error", "invalid_request"),
-            Map.entry("error_details", "code verification failed")
+            Map.entry("error_details", "specified grant_type not supported")
           ))
         );
       }
-
-      logger.debug("PKCE check passed");
-      session.getAttributes().remove(CODE_CHALLENGE_SESSION_KEY);
-      session.save();
 
       return edlClient
           .post()
