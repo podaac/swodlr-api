@@ -4,9 +4,7 @@ import java.net.URI;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-
 import javax.validation.constraints.Size;
-
 import org.apache.commons.codec.digest.DigestUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -54,7 +52,7 @@ public class EdlProxyController {
       @RequestParam("response_type") String responseType,
       @RequestParam("client_id") String clientId,
       @RequestParam("redirect_uri") String redirectUri,
-      @RequestParam("code_challenge") @Size(min=64, max=64) String codeChallenge,
+      @RequestParam("code_challenge") @Size(min = 64, max = 64) String codeChallenge,
       @RequestParam("code_challenge_method") String codeChallengeMethod
   ) {
     return Mono.defer(() -> {
