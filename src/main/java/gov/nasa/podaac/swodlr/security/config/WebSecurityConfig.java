@@ -26,7 +26,7 @@ public class WebSecurityConfig {
         .csrf().disable()
         .authorizeExchange((exchange) -> {
           exchange.pathMatchers("/edl/**").permitAll();
-          exchange.anyExchange().denyAll();
+          exchange.anyExchange().authenticated();
         })
         .oauth2ResourceServer((resourceServer) -> {
           resourceServer.jwt((jwt) -> {
