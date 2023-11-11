@@ -122,14 +122,20 @@ resource "aws_ssm_parameter" "app_db_password" {
   value = aws_ssm_parameter.db_app_password.value
 }
 
+resource "aws_ssm_parameter" "app_edl_base_path" {
+  name = "${local.app_path}/swodlr.security.edl-base-url"
+  type = "String"
+  value = var.edl_base_url
+}
+
 resource "aws_ssm_parameter" "app_edl_client_id" {
-  name = "${local.app_path}/spring.security.oauth2.client.registration.edl.client-id"
+  name = "${local.app_path}/swodlr.security.edl-client-id"
   type = "String"
   value = var.edl_client_id
 }
 
 resource "aws_ssm_parameter" "app_edl_client_secret" {
-  name = "${local.app_path}/spring.security.oauth2.client.registration.edl.client-secret"
+  name = "${local.app_path}/swodlr.security.edl-client-secret"
   type = "String"
   value = var.edl_client_secret
 }

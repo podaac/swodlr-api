@@ -40,6 +40,10 @@ variable "container_image_tag" {
     type = string
 }
 
+variable "edl_base_url" {
+    type = string
+}
+
 variable "edl_client_id" {
     type = string
 }
