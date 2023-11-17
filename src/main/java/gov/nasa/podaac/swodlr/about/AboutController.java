@@ -1,10 +1,8 @@
 package gov.nasa.podaac.swodlr.about;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.lang.management.ManagementFactory;
 import java.util.Properties;
-
 import org.springframework.core.io.support.PropertiesLoaderUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
