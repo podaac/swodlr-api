@@ -1,0 +1,9 @@
+type RasterDefinition {
+    id: ID!
+    name: String!
+    outputGranuleExtentFlag: Boolean!
+    outputSamplingGridType: GridType!
+    rasterResolution: Int!
+    utmZoneAdjust: Int
+    mgrsBandAdjust: Int
+}

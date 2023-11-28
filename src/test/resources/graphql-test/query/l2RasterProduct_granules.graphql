@@ -1,0 +1,8 @@
+query ($id: ID!) {
+  l2RasterProduct(id: $id) {
+    granules {
+      id
+      uri
+    }
+  }
+}
