@@ -81,3 +81,18 @@ tasks.named('test') {
 tasks.named('check').configure {
     dependsOn(tasks.named('jacocoTestReport'))
 }
+
+task createVersionProperties(dependsOn: processResources) {
+    doLast {
+        def versionFile = file("$buildDir/resources/main/version.properties")
+        versionFile.withWriter { w -> 
+            Properties props = new Properties()
+            props.setProperty("version", version)
+            props.store w, null
+        }
+    }
+}
+
+classes {
+    dependsOn createVersionProperties
+}
