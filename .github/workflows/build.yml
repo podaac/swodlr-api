@@ -28,6 +28,13 @@ jobs:
       deploy_env_lower: ${{ steps.npm-build.outputs.deploy_env_lower }}
       version: ${{ steps.npm-build.outputs.the_version }}
     steps:
+      - name: No version bump
+        # If triggered by workflow dispatch, no version bump
+        if: ${{ github.event_name == 'workflow_dispatch' }}
+        run: |
+          echo "TARGET_ENV_UPPERCASE=${{ github.event.inputs.venue }}" >> $GITHUB_ENV
+          echo "THE_ENV=uat" >> $GITHUB_ENV
+
       #   -- Setup --
       - uses: getsentry/action-github-app-token@v2
         name: my-app-install token
@@ -79,7 +86,11 @@ jobs:
 
       #   -- Building --
       - name: Build with Gradle
-        run: gradle build
+        id: gradle-build
+        run: |
+          gradle build
+          echo "deploy_env=${{ env.TARGET_ENV_UPPERCASE }}" >> $GITHUB_OUTPUT
+          echo "deploy_env_lower=${{ env.THE_ENV }}" >> $GITHUB_OUTPUT
       - name: Build & push container images
         # Only push container images for releases, rcs, and alphas
         if: >
@@ -111,11 +122,11 @@ jobs:
     needs: build-api
     # The type of runner that the job will run on
     runs-on: ubuntu-latest
-    environment: ${{ needs.build.outputs.deploy_env }}
+    environment: ${{ needs.gradle-build.outputs.deploy_env }}
     env:
-      THE_ENV: ${{ needs.build.outputs.deploy_env_lower }}
-      TARGET_ENV_UPPERCASE: ${{ needs.build.outputs.deploy_env }}
-      THE_VERSION: ${{ needs.build.outputs.version }}
+      THE_ENV: ${{ needs.gradle-build.outputs.deploy_env_lower }}
+      TARGET_ENV_UPPERCASE: ${{ needs.gradle-build.outputs.deploy_env }}
+      THE_VERSION: ${{ needs.gradle-build.outputs.version }}
     if: |
       github.ref == 'refs/heads/develop' ||
       github.ref == 'refs/heads/main'    ||
