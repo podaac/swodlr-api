@@ -8,6 +8,17 @@ on:
     paths-ignore:
       - 'build.gradle'
       - 'bumpver.toml'
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+    inputs:
+      venue:
+        type: choice
+        description: Venue to deploy to
+        options:
+          - SIT
+          - UAT
+
 jobs:
   build-api:
     name: build, lint, and test API
