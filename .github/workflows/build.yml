@@ -24,9 +24,9 @@ jobs:
     name: build, lint, and test API
     runs-on: ubuntu-latest
     outputs:
-      deploy_env: ${{ steps.npm-build.outputs.deploy_env }}
-      deploy_env_lower: ${{ steps.npm-build.outputs.deploy_env_lower }}
-      version: ${{ steps.npm-build.outputs.the_version }}
+      deploy_env: ${{ steps.gradle-build.outputs.deploy_env }}
+      deploy_env_lower: ${{ steps.gradle-build.outputs.deploy_env_lower }}
+      version: ${{ steps.gradle-build.outputs.the_version }}
     steps:
       - name: No version bump
         # If triggered by workflow dispatch, no version bump
@@ -89,8 +89,10 @@ jobs:
         id: gradle-build
         run: |
           gradle build
+          gradle_version=$(cat version.txt)
           echo "deploy_env=${{ env.TARGET_ENV_UPPERCASE }}" >> $GITHUB_OUTPUT
           echo "deploy_env_lower=${{ env.THE_ENV }}" >> $GITHUB_OUTPUT
+          echo "the_version=${{ gradle_version }}" >> $GITHUB_OUTPUT
       - name: Build & push container images
         # Only push container images for releases, rcs, and alphas
         if: >
