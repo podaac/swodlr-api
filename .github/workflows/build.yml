@@ -166,4 +166,10 @@ jobs:
         env:
           AWS_DEFAULT_REGION: us-west-2
         run: |
+          export TF_VAR_edl_base_url=${{ secrets.EDL_BASE_URL }}
+          export TF_VAR_edl_client_id=${{ secrets.EDL_CLIENT_IT }}
+          export TF_VAR_edl_client_secret=${{ secrets.EDL_CLIENT_SECRET }}
+          export TF_VAR_session_encryption_key=${{ secrets.SESSION_ENCRYPTION_KEY }}
+          export TF_VAR_ingest_aws_account=${{ secrets.INGEST_AWS_ACCOUNT }}
+          export TF_VAR_ingest_aws_role=${{ secrets.INGEST_AWS_ROLE }}
           ./bin/deploy.sh ${{ vars.TF_VENUE }}
