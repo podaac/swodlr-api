@@ -100,7 +100,6 @@ jobs:
         id: gradle-build
         run: |
           gradle build
-          gradle_version=alpha
           echo "deploy_env=${{ env.TARGET_ENV_UPPERCASE }}" >> $GITHUB_OUTPUT
           echo "deploy_env_lower=${{ env.THE_ENV }}" >> $GITHUB_OUTPUT
           echo "the_version=$gradle_version" >> $GITHUB_OUTPUT
