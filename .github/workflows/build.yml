@@ -33,15 +33,12 @@ jobs:
         if: ${{ github.event_name == 'workflow_dispatch' }}
         run: |
           echo "TARGET_ENV_UPPERCASE=${{ github.event.inputs.venue }}" >> $GITHUB_ENV
-          echo "THE_ENV=uat" >> $GITHUB_ENV
 
           TARGET_ENV_UPPERCASE=${{ github.event.inputs.venue }}
           if [ "$TARGET_ENV_UPPERCASE" == "SIT" ]; then
             echo "THE_ENV=sit" >> $GITHUB_ENV
-            echo "TARGET_ENV_UPPERCASE=SIT" >> $GITHUB_ENV
           elif [ "$TARGET_ENV_UPPERCASE" == "UAT" ]; then
             echo "THE_ENV=uat" >> $GITHUB_ENV
-            echo "TARGET_ENV_UPPERCASE=UAT" >> $GITHUB_ENV
           fi
       #   -- Setup --
       - uses: getsentry/action-github-app-token@v2
