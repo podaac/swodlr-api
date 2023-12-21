@@ -82,12 +82,18 @@ jobs:
           else
             bumpver update --tag alpha --tag-num
           fi
+          echo "TARGET_ENV_UPPERCASE=SIT" >> $GITHUB_ENV
+          echo "THE_ENV=sit" >> $GITHUB_ENV
       - name: Bump rc version
         if: startsWith(github.ref, 'refs/heads/release/')
-        run: bumpver --tag rc --tag-num
+        run: |
+          bumpver --tag rc --tag-num
+          echo "TARGET_ENV_UPPERCASE=UAT" >> $GITHUB_ENV
+          echo "THE_ENV=uat" >> $GITHUB_ENV
       - name: Release version
         if: github.ref == 'refs/heads/main'
-        run: bumpver --tag final
+        run: |
+          bumpver --tag final
 
       #   -- Building --
       - name: Build with Gradle
@@ -140,11 +146,6 @@ jobs:
       startsWith(github.ref, 'refs/heads/release') ||
       github.event_name == 'workflow_dispatch'
     steps:
-      - name: debug output
-        run: |
-          echo "deploy env ${{ env.THE_ENV }}"
-          echo "access key id name ${{ vars.AWS_ACCESS_KEY_ID_SECRET_NAME }}"
-          echo "secret access key name ${{ vars.AWS_SECRET_ACCESS_KEY_SECRET_NAME }}"
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
