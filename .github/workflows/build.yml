@@ -166,33 +166,4 @@ jobs:
         env:
           AWS_DEFAULT_REGION: us-west-2
         run: |
-          export TF_VAR_cloudfront_distribution_id=${{ secrets.CF_DISTRIBUTION_ID }}
-          export TF_VAR_cloudfront_allow_vpcs=${{ secrets.EDC_INTERNET_SERVICES_VPCS }}
-          ./bin/deploy.sh --app-version ${{ env.THE_VERSION }} --tf-venue ${{ vars.TF_VENUE }}
-          echo "SWODLR_UI_BUCKET=$(terraform output -raw swodlr-bucket-name)" >> $GITHUB_ENV
-      - uses: actions/download-artifact@v3
-        id: download
-        with:
-          name: build
-          path: build/
-      - name: Sync S3
-        run:
-          aws s3 sync ${{steps.download.outputs.download-path}} s3://${{ env.SWODLR_API_BUCKET }} --delete
-      - name: Publish UMM-T with new version
-        uses: podaac/cmr-umm-updater@0.5.0
-        if: |
-          env.TARGET_ENV_UPPERCASE == 'UAT' ||
-          env.TARGET_ENV_UPPERCASE == 'OPS'
-        with:
-          umm-json: 'cmr/${{env.THE_ENV}}_swodlr_cmr_umm_t.json'
-          provider: 'POCLOUD'
-          env: ${{ env.THE_ENV }}
-          version: ${{ env.THE_VERSION }}
-          timeout: 60
-          disable_removal: 'true'
-          umm_type: 'umm-t'
-          use_associations: 'false'
-        env:
-          LAUNCHPAD_TOKEN_SIT: ${{secrets.LAUNCHPAD_TOKEN_SIT}}
-          LAUNCHPAD_TOKEN_UAT: ${{secrets.LAUNCHPAD_TOKEN_UAT}}
-          LAUNCHPAD_TOKEN_OPS: ${{secrets.LAUNCHPAD_TOKEN_OPS}}
+          ./bin/deploy.sh ${{ vars.TF_VENUE }}
