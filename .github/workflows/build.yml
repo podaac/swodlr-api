@@ -133,13 +133,11 @@ jobs:
       startsWith(github.ref, 'refs/heads/release') ||
       github.event_name == 'workflow_dispatch'
     steps:
-      - uses: actions/checkout@v3
-        with:
-          repository: ${{ github.repository }}
-      - uses: hashicorp/setup-terraform@v2
-        with:
-          terraform_version: ${{ env.TERRAFORM_VERSION }}
-          terraform_wrapper: false
+      - name: debug output
+        run: |
+          echo "deploy env ${{ needs.build-api.outputs.deploy_env }}"
+          echo "access key id name ${{ vars.AWS_ACCESS_KEY_ID_SECRET_NAME}}"
+          echo "secret access key name ${{ vars.AWS_SECRET_ACCESS_KEY_SECRET_NAME}}"
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -148,6 +146,13 @@ jobs:
           aws-access-key-id: ${{ secrets[vars.AWS_ACCESS_KEY_ID_SECRET_NAME] }}
           aws-secret-access-key: ${{ secrets[vars.AWS_SECRET_ACCESS_KEY_SECRET_NAME] }}
           mask-aws-account-id: true
+      - uses: actions/checkout@v3
+        with:
+          repository: ${{ github.repository }}
+      - uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: ${{ env.TERRAFORM_VERSION }}
+          terraform_wrapper: false
       - name: Deploy to venue
         id: terraform-deploy
         working-directory: terraform/
