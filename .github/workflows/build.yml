@@ -25,7 +25,6 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       deploy_env: ${{ steps.gradle-build.outputs.deploy_env }}
-      deploy_env_lower: ${{ steps.gradle-build.outputs.deploy_env_lower }}
       version: ${{ steps.gradle-build.outputs.the_version }}
     steps:
       - name: No version bump
@@ -101,7 +100,6 @@ jobs:
         run: |
           gradle build
           echo "deploy_env=${{ env.TARGET_ENV_UPPERCASE }}" >> $GITHUB_OUTPUT
-          echo "deploy_env_lower=${{ env.THE_ENV }}" >> $GITHUB_OUTPUT
           echo "the_version=$gradle_version" >> $GITHUB_OUTPUT
       - name: Build & push container images
         # Only push container images for releases, rcs, and alphas
@@ -136,8 +134,6 @@ jobs:
     runs-on: ubuntu-latest
     environment: ${{ needs.build.outputs.deploy_env }}
     env:
-      THE_ENV: ${{ needs.build.outputs.deploy_env_lower }}
-      TARGET_ENV_UPPERCASE: ${{ needs.build.outputs.deploy_env }}
       THE_VERSION: ${{ needs.build.outputs.version }}
     if: |
       github.ref == 'refs/heads/develop' ||
