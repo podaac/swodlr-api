@@ -26,13 +26,6 @@ jobs:
     outputs:
       deploy_env: ${{ steps.gradle-build.outputs.deploy_env }}
     steps:
-      - name: No version bump
-        # If triggered by workflow dispatch, no version bump
-        if: ${{ github.event_name == 'workflow_dispatch' }}
-        run: |
-          echo "TARGET_ENV=${{ github.event.inputs.venue }}" >> $GITHUB_ENV
-
-          TARGET_ENV=${{ github.event.inputs.venue }}
       #   -- Setup --
       - uses: getsentry/action-github-app-token@v2
         name: my-app-install token
@@ -65,8 +58,15 @@ jobs:
           git config user.name "github-actions[bot]"
 
       #   -- Version Bumping --
+      - name: Manual execution means no version bump
+        # If triggered by workflow dispatch, no version bump
+        if: ${{ github.event_name == 'workflow_dispatch' }}
+        run: |
+          echo "TARGET_ENV=${{ github.event.inputs.venue }}" >> $GITHUB_ENV
+
+          TARGET_ENV=${{ github.event.inputs.venue }}
       - name: Bump alpha version
-        if: github.ref == 'refs/heads/develop'
+        if: github.ref == 'refs/heads/develop' && github.event_name != 'workflow_dispatch'
         run: |
           TAG=$(bumpver show -e | awk -F= '$1 == "TAG" {print $2};')
           if [ $TAG == 'final' ]; then
@@ -77,12 +77,12 @@ jobs:
           fi
           echo "TARGET_ENV=SIT" >> $GITHUB_ENV
       - name: Bump rc version
-        if: startsWith(github.ref, 'refs/heads/release/')
+        if: startsWith(github.ref, 'refs/heads/release/') && github.event_name != 'workflow_dispatch'
         run: |
           bumpver --tag rc --tag-num
           echo "TARGET_ENV=UAT" >> $GITHUB_ENV
       - name: Release version
-        if: github.ref == 'refs/heads/main'
+        if: github.ref == 'refs/heads/main' && github.event_name != 'workflow_dispatch'
         run: |
           bumpver --tag final
 
@@ -147,7 +147,7 @@ jobs:
         with:
           terraform_version: ${{ env.TERRAFORM_VERSION }}
           terraform_wrapper: false
-      - name: Deploy to venue
+      - name: Deploy to ${{ needs.build.outputs.deploy_env }}
         id: terraform-deploy
         working-directory: terraform/
         env:
