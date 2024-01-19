@@ -26,13 +26,6 @@ jobs:
     outputs:
       deploy_env: ${{ steps.gradle-build.outputs.deploy_env }}
     steps:
-      - name: No version bump
-        # If triggered by workflow dispatch, no version bump
-        if: ${{ github.event_name == 'workflow_dispatch' }}
-        run: |
-          echo "TARGET_ENV=${{ github.event.inputs.venue }}" >> $GITHUB_ENV
-
-          TARGET_ENV=${{ github.event.inputs.venue }}
       #   -- Setup --
       - uses: getsentry/action-github-app-token@v2
         name: my-app-install token
