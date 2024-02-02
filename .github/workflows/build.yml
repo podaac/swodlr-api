@@ -18,13 +18,17 @@ on:
         options:
           - SIT
           - UAT
-
+      commit:
+        type: string
+        description: Custom commit hash
+    
 jobs:
   build:
     name: build, lint, and test API
     runs-on: ubuntu-latest
     outputs:
-      deploy_env: ${{ steps.gradle-build.outputs.deploy_env }}
+      deploy_env: ${{ steps.set-env.outputs.deploy_env }}
+      github_sha: ${{ steps.update-sha.outputs.github_sha }}
     steps:
       #   -- Setup --
       - uses: getsentry/action-github-app-token@v2
@@ -33,10 +37,14 @@ jobs:
         with:
           app_id: ${{ secrets.CICD_APP_ID }}
           private_key: ${{ secrets.CICD_APP_PRIVATE_KEY }}
-      - uses: actions/checkout@v3
+      - name: Initial checkout ${{ github.ref }}
+        if: github.event.inputs.commit == ''
+        uses: actions/checkout@v4
+      - name: Adjust to proper commit hash ${{ github.event.inputs.commit }}
+        if: github.event.inputs.commit != ''
+        uses: actions/checkout@v4
         with:
-          repository: ${{ github.repository }}
-          token: ${{ steps.podaac-cicd.outputs.token }}
+          ref: ${{ github.event.inputs.commit }}
       - uses: docker/login-action@v2
         with:
           registry: ghcr.io
@@ -85,13 +93,15 @@ jobs:
         if: github.ref == 'refs/heads/main' && github.event_name != 'workflow_dispatch'
         run: |
           bumpver --tag final
-
+      - name: Set the target environment to ${{ env.TARGET_ENV }}
+        id: set-env
+        run: |
+          echo "deploy_env=${{ env.TARGET_ENV }}" >> $GITHUB_OUTPUT
       #   -- Building --
       - name: Build with Gradle
         id: gradle-build
         run: |
           gradle build
-          echo "deploy_env=${{ env.TARGET_ENV }}" >> $GITHUB_OUTPUT
       - name: Build & push container images
         # Only push container images for releases, rcs, and alphas
         if: >
@@ -118,6 +128,12 @@ jobs:
         with:
           name: reports
           path: build/reports
+      - name: Set github SHA for deployment
+        id: update-sha
+        run: |
+          SHA=$(git rev-parse HEAD)
+          echo "github_sha=${SHA}" >> $GITHUB_OUTPUT
+
   deploy:
     name: Deploy
     needs: build
@@ -140,9 +156,10 @@ jobs:
           aws-access-key-id: ${{ secrets[vars.AWS_ACCESS_KEY_ID_SECRET_NAME] }}
           aws-secret-access-key: ${{ secrets[vars.AWS_SECRET_ACCESS_KEY_SECRET_NAME] }}
           mask-aws-account-id: true
-      - uses: actions/checkout@v3
+      - name: Checkout repository for Deployment ${{ needs.build.outputs.github_sha }}
+        uses: actions/checkout@v4
         with:
-          repository: ${{ github.repository }}
+          ref: ${{ needs.build.outputs.github_sha }}
       - uses: hashicorp/setup-terraform@v2
         with:
           terraform_version: ${{ env.TERRAFORM_VERSION }}
@@ -161,3 +178,26 @@ jobs:
         run: |
           source bin/config.sh ${{ vars.TF_VENUE }}
           terraform apply -auto-approve
+      - name: Retrieve version number for notifications
+        run: |
+          VERSION=$(cat bumpver.toml|grep current_version |grep -v {version} |sed -E "s/current_version = //"|sed -E "s/\"//g")
+          echo "SUBMODULE_VERSION=$VERSION">>$GITHUB_ENV
+      - name: Send notifications to slack
+        uses: slackapi/slack-github-action@v1.25.0
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.NOTIFICATION_WEBHOOK_SWODLR }}
+        with:
+          payload: |
+            {
+              "message": "${{ github.repository }} [version ${{ env.SUBMODULE_VERSION }}] has been deployed to the ${{ needs.build.outputs.deploy_env }} environment"
+            }
+      - name: Send failure notifications to slack
+        if: failure()
+        uses: slackapi/slack-github-action@v1.25.0
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.NOTIFICATION_WEBHOOK_SWODLR }}
+        with:
+          payload: |
+            {
+              "message": "ERROR: ${{ github.repository }} [version ${{ env.SUBMODULE_VERSION }}] has encountered an error while trying to deploy to the ${{ needs.build.outputs.deploy_env }} environment"
+            }
