@@ -1,0 +1,19 @@
+query ($after: ID!, $limit: Int) {
+    status: statusByPrevious(after: $after, limit: $limit) {
+        id
+        timestamp
+        state
+        reason
+        product {
+            id
+            cycle
+            pass
+            scene
+            outputGranuleExtentFlag
+            outputSamplingGridType
+            rasterResolution
+            utmZoneAdjust
+            mgrsBandAdjust
+        }
+    }
+}

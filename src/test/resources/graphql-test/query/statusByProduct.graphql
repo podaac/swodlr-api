@@ -1,0 +1,19 @@
+query ($product: ID!, $limit: Int) {
+    status: statusByProduct(product: $product, limit: $limit) {
+        id
+        timestamp
+        state
+        reason
+        product {
+            id
+            cycle
+            pass
+            scene
+            outputGranuleExtentFlag
+            outputSamplingGridType
+            rasterResolution
+            utmZoneAdjust
+            mgrsBandAdjust
+        }
+    }
+}

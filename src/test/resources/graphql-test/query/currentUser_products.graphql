@@ -1,0 +1,20 @@
+query ($after: ID, $limit: Int) {
+    currentUser {
+        products(after: $after, limit: $limit) {
+            id
+            cycle
+            pass
+            scene
+            outputGranuleExtentFlag
+            outputSamplingGridType
+            rasterResolution
+            
+            status {
+                id
+                timestamp
+                state
+                reason
+            }
+        }
+    }
+}

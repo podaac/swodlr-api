@@ -1,0 +1,98 @@
+plugins {
+    id 'org.springframework.boot' version '2.7.4'
+    id 'io.spring.dependency-management' version '1.0.12.RELEASE'
+    id 'application'
+    id 'jacoco'
+    id 'checkstyle'
+    id 'com.google.cloud.tools.jib' version '3.3.0'
+}
+
+group = 'gov.nasa.podaac.swodlr'
+version = '0.0.1-alpha48'
+sourceCompatibility = '17'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation platform('io.awspring.cloud:spring-cloud-aws-dependencies:3.0.2')
+
+    implementation 'org.apache.commons:commons-lang3:3.12.0'
+    implementation 'org.apache.commons:commons-compress:1.22'
+    implementation 'commons-codec:commons-codec:1.16.0'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springframework.boot:spring-boot-starter-graphql'
+    implementation 'org.springframework.boot:spring-boot-starter-webflux'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+    implementation 'org.springframework.boot:spring-boot-starter-oauth2-resource-server'
+    implementation 'org.springframework.boot:spring-boot-starter-json'
+    implementation 'org.tukaani:xz:1.9'
+    implementation 'io.awspring.cloud:spring-cloud-aws-starter-parameter-store'
+    implementation 'io.awspring.cloud:spring-cloud-aws-starter-sqs'
+    implementation 'io.awspring.cloud:spring-cloud-aws-starter-dynamodb'
+    implementation 'org.postgresql:postgresql:42.5.4'
+    implementation 'com.zaxxer:HikariCP:5.0.1'
+    implementation 'io.netty:netty-all:4.1.90.Final'
+    annotationProcessor "org.springframework.boot:spring-boot-configuration-processor"
+    developmentOnly 'org.springframework.boot:spring-boot-devtools'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.springframework.graphql:spring-graphql-test'
+    testImplementation 'com.h2database:h2:2.1.214' // Bumping to 2.2.220 causes tests to fail with "JdbcSQLSyntaxErrorException: Function alias "gen_random_uuid" already exists; SQL statement: CREATE ALIAS IF NOT EXISTS gen_random_uuid"
+}
+
+checkstyle {
+    toolVersion '10.3.4'
+    configFile = file('/google_checks.xml')
+    configProperties = [
+        'org.checkstyle.google.suppressionfilter.config': "$projectDir/config/checkstyle/suppressions.xml"
+    ]
+    maxWarnings = 0
+}
+
+jib {
+    from {
+        image = 'eclipse-temurin:17-jre-alpine'
+    }
+    to {
+        image = "ghcr.io/podaac/swodlr-api:${version}"
+
+        def headRef = System.env.GITHUB_REF_NAME ? System.env.GITHUB_REF_NAME : ""
+        if (headRef.equals('develop') || headRef.equals('main')) {
+            tags = [headRef]
+        } else if (headRef.startsWith('release')) {
+            tags = ['rc']
+        }
+    }
+    container {
+        format = "OCI"
+        labels = [
+            'org.opencontainers.image.source': 'https://github.com/podaac/swodlr-api',
+            'org.opencontainers.image.licenses': 'Apache-2.0'
+        ]
+    }
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
+
+tasks.named('check').configure {
+    dependsOn(tasks.named('jacocoTestReport'))
+}
+
+task createVersionProperties(dependsOn: processResources) {
+    doLast {
+        def versionFile = file("$buildDir/resources/main/version.properties")
+        versionFile.withWriter { w -> 
+            Properties props = new Properties()
+            props.setProperty("version", version)
+            props.store w, null
+        }
+    }
+}
+
+classes {
+    dependsOn createVersionProperties
+}
