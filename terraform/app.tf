@@ -37,7 +37,7 @@ resource "aws_ecs_service" "app" {
   load_balancer {
     target_group_arn = aws_lb_target_group.app.arn
     container_name = "${local.resource_prefix}-app"
-    container_port = 8080
+    container_port = 443
   }
 
   network_configuration {
@@ -73,8 +73,9 @@ resource "aws_ecs_task_definition" "app" {
     environment = local.swodlr_app_env
 
     portMappings = [{
-      containerPort = 8080
-      hostPort = 8080
+      containerPort = 443
+      hostPort = 443
+      protocol = "tcp"
     }]
 
     logConfiguration = {

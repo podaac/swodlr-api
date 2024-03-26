@@ -39,6 +39,10 @@ provider "aws" {
 
 data "aws_caller_identity" "current" {}
 
+data "aws_ssm_parameter" "private_ca" {
+  name = "ngap_private_ca_arn"
+}
+
 data "local_file" "build_gradle" {
   filename = abspath("${path.root}/../build.gradle")
 }
