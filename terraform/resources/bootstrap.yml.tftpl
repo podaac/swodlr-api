@@ -2,7 +2,7 @@
 version: v1
 
 bootcmd:
-  - curl https://download.postgresql.org/pub/repos/yum/RPM-GPG-KEY-PGDG -o /etc/pki/rpm-gpg/RPM-GPG-KEY-PGDG
+  - curl https://download.postgresql.org/pub/repos/yum/keys/RPM-GPG-KEY-PGDG -o /etc/pki/rpm-gpg/RPM-GPG-KEY-PGDG
   - rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY-PGDG
 
 yum_repos:
@@ -10,16 +10,16 @@ yum_repos:
     name: PostgreSQL common RPMs for RHEL / Rocky 7 - $basearch
     baseurl: https://download.postgresql.org/pub/repos/yum/common/redhat/rhel-7-$basearch
     enabled: true
-    gpgcheck: true
+    gpgcheck: false
     gpgkey: file:///etc/pki/rpm-gpg/RPM-GPG-KEY-PGDG
-    repo_gpgcheck: true
+    repo_gpgcheck: false
   pgdg14:
     name: PostgreSQL 14 for RHEL / Rocky 7 - $basearch
     baseurl: https://download.postgresql.org/pub/repos/yum/14/redhat/rhel-7-$basearch
     enabled: true
-    gpgcheck: true
+    gpgcheck: false
     gpgkey: file:///etc/pki/rpm-gpg/RPM-GPG-KEY-PGDG
-    repo_gpgcheck: true
+    repo_gpgcheck: false
 
 packages:
   - postgresql14
