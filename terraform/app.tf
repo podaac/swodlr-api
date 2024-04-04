@@ -36,7 +36,7 @@ resource "aws_ecs_service" "app" {
 
   load_balancer {
     target_group_arn = aws_lb_target_group.app.arn
-    container_name = "${local.resource_prefix}-app"
+    container_name = "${local.resource_prefix}-proxy"
     container_port = 443
   }
 
@@ -69,13 +69,42 @@ resource "aws_ecs_task_definition" "app" {
   container_definitions = jsonencode([{
     name = "${local.resource_prefix}-app"
     image = local.container_image
+    essential = true
 
     environment = local.swodlr_app_env
 
     portMappings = [{
-      containerPort = 443
-      hostPort = 443
+      containerPort = 8080
       protocol = "tcp"
+    }]
+
+    logConfiguration = {
+      logDriver = "awslogs"
+      options = {
+        awslogs-region = var.region
+        awslogs-group = aws_cloudwatch_log_group.app.name
+        awslogs-stream-prefix = local.resource_prefix
+      }
+    }
+  }, {
+    name = "${local.resource_prefix}-proxy"
+    image = "ghcr.io/podaac/ngap-dit-proxy"
+    essential = true
+
+    portMappings = [{
+      containerPort = 443
+      protocol = "tcp"
+    }]
+
+    environment = [{
+      name = "HOSTNAME"
+      value = aws_acm_certificate.app.domain_name
+    }, {
+      name = "NGAP_CERTIFICATE_ARN"
+      value = aws_acm_certificate.app.arn
+    }, {
+      name = "APP_PORT"
+      value = "8080"
     }]
 
     logConfiguration = {
@@ -180,8 +209,8 @@ resource "aws_security_group" "app" {
   vpc_id = data.aws_vpc.default.id
 
   ingress {
-    from_port = 8080
-    to_port   = 8080
+    from_port = 443
+    to_port   = 443
     protocol  = "tcp"
     cidr_blocks = [data.aws_vpc.default.cidr_block]
     // IPv6 is not supported NGAP VPCs
@@ -201,6 +230,16 @@ resource "aws_security_group" "app" {
 resource "aws_kms_key" "app_log" {
   description = "${local.resource_prefix}-app-log"
   deletion_window_in_days = 7
+}
+
+resource "aws_acm_certificate" "app" {
+  domain_name       = "${local.resource_prefix}-app.internal.earthdatacloud.nasa.gov"
+ 
+  certificate_authority_arn = data.aws_ssm_parameter.private_ca.value
+ 
+  lifecycle {
+    create_before_destroy = true
+  }
 }
 
 /* -- IAM -- */
@@ -275,6 +314,21 @@ resource "aws_iam_role" "app_task" {
       ]
     })
   }
+
+  inline_policy {
+    name = "AllowAppCertificateExport"
+    policy = jsonencode({
+      Version = "2012-10-17",
+      Statement = [
+        {
+          Sid = ""
+          Effect = "Allow",
+          Action = ["acm:ExportCertificate"],
+          Resource = aws_acm_certificate.app.arn
+        }
+      ]
+    })
+  }
 }
 
 resource "aws_iam_role" "app_task_exec" {
@@ -311,24 +365,6 @@ resource "aws_iam_role" "app_task_exec" {
             "logs:PutLogEvents"
           ]
           Resource = "*"
-        }
-      ]
-    })
-  }
-
-  inline_policy {
-    name = "allow-avalible-tiles-table"
-    policy = jsonencode({
-      Version = "2012-10-17",
-      Statement = [
-        {
-          Sid = ""
-          Action = [
-            "dynamodb:BatchGetItem",
-            "dynamodb:GetItem"
-          ]
-          Effect   = "Allow"
-          Resource = aws_dynamodb_table.available_tiles.arn
         }
       ]
     })

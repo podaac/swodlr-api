@@ -12,8 +12,9 @@ resource "aws_lb_listener" "app" {
   load_balancer_arn = aws_lb.app.arn
   port = 443
   protocol = "HTTPS"
-  certificate_arn = aws_acm_certificate.cert.arn
+  certificate_arn = aws_acm_certificate.load_balancer.arn
   ssl_policy = "ELBSecurityPolicy-TLS13-1-2-2021-06"
+  
   default_action {
     type = "forward"
     target_group_arn = aws_lb_target_group.app.arn
@@ -32,6 +33,11 @@ resource "aws_lb_target_group" "app" {
     matcher = "200"
     path = "${var.app_base_path}/about"
     port = 443
+    protocol = "HTTPS"
+  }
+
+  lifecycle {
+    create_before_destroy = true
   }
 }
 
@@ -58,8 +64,8 @@ resource "aws_security_group" "load_balancer" {
 }
 
 /* --  Load balancer listener certificate -- */
-resource "aws_acm_certificate" "cert" {
-  domain_name       = "${local.name}.${local.environment}.internal.earthdatacloud.nasa.gov"
+resource "aws_acm_certificate" "load_balancer" {
+  domain_name       = "${local.resource_prefix}-lb.internal.earthdatacloud.nasa.gov"
  
   certificate_authority_arn = data.aws_ssm_parameter.private_ca.value
  
