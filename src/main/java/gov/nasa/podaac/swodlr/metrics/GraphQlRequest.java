@@ -32,7 +32,8 @@ public class GraphQlRequest {
     this.operation = opDef.getOperation().name();
     this.path = execStepInfo.getPath().toString();
     this.executionId = environment.getExecutionId().toString();
-    this.arguments = Map.copyOf(environment.getArguments());
+    this.arguments = (environment.getArguments() == null)
+      ? Map.copyOf(environment.getArguments()) : Map.of();
   }
 
   public Map<String, Object> getArguments() {

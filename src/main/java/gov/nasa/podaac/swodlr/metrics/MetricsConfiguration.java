@@ -8,13 +8,13 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class MetricsConfiguration {
-    @Autowired
-    private GraphQlRequestLogger graphQlRequestLogger;
+  @Autowired
+  private GraphQlRequestLogger graphQlRequestLogger;
 
-    @Bean
-    public GraphQlSourceBuilderCustomizer graphQlSourceBuilderCustomizer() {
-        return customizer -> {
-            customizer.instrumentation(List.of(graphQlRequestLogger));
-        };
-    }
+  @Bean
+  public GraphQlSourceBuilderCustomizer graphQlSourceBuilderCustomizer() {
+    return customizer -> {
+      customizer.instrumentation(List.of(graphQlRequestLogger));
+    };
+  }
 }

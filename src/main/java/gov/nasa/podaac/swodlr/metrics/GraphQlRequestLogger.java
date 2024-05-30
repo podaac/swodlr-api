@@ -17,7 +17,9 @@ public class GraphQlRequestLogger extends SimpleInstrumentation {
   private final ObjectMapper objectMapper = Jackson2ObjectMapperBuilder.json().build();
   
   @Override
-  public InstrumentationContext<Object> beginFieldFetch(InstrumentationFieldFetchParameters parameters) {
+  public InstrumentationContext<Object> beginFieldFetch(
+      InstrumentationFieldFetchParameters parameters
+  ) {
     return SimpleInstrumentationContext.whenDispatched((future) -> {
       try {
         logger.info(objectMapper.writeValueAsString(new GraphQlRequest(parameters)));
