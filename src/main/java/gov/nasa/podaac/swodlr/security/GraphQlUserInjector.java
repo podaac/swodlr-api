@@ -13,6 +13,8 @@ import reactor.core.publisher.Mono;
 @Component
 @Profile("!test")
 public class GraphQlUserInjector implements WebGraphQlInterceptor {
+  public static final String USER_REFERENCE_KEY = "userRef";
+
   @Override
   public Mono<WebGraphQlResponse> intercept(WebGraphQlRequest request, Chain chain) {
     return Mono.deferContextual((context) -> {
@@ -21,7 +23,7 @@ public class GraphQlUserInjector implements WebGraphQlInterceptor {
           UserReference userReference = session.getAttribute("user");
           if (userReference != null) {
             request.configureExecutionInput((executionInput, builder) -> {
-              builder.graphQLContext(Collections.singletonMap("userRef", userReference));
+              builder.graphQLContext(Collections.singletonMap(USER_REFERENCE_KEY, userReference));
               return builder.build();
             });
           }
