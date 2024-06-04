@@ -42,8 +42,8 @@ public class L2RasterProductController {
       return l2RasterProductService.getL2RasterProduct(
         user,
         cycle,
-        scene,
         pass,
+        scene,
         outputGranuleExtentFlag,
         outputSamplingGridType,
         rasterResolution,
