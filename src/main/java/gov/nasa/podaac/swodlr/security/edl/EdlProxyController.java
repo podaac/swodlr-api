@@ -1,4 +1,4 @@
-package gov.nasa.podaac.swodlr.security;
+package gov.nasa.podaac.swodlr.security.edl;
 
 import java.net.URI;
 import java.util.List;
@@ -21,6 +21,8 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.util.UriComponentsBuilder;
+
+import gov.nasa.podaac.swodlr.security.SwodlrSecurityProperties;
 import reactor.core.publisher.Mono;
 
 @RestController
