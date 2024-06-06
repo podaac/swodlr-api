@@ -9,11 +9,14 @@ import java.util.Collections;
 import java.util.List;
 import javax.validation.ConstraintViolationException;
 import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 import org.springframework.graphql.execution.DataFetcherExceptionResolverAdapter;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.TransactionSystemException;
 
 @Component
+@Order(Ordered.HIGHEST_PRECEDENCE)
 public class SwodlrExceptionResolver extends DataFetcherExceptionResolverAdapter {
   @Override
   public List<GraphQLError> resolveToMultipleErrors(Throwable ex, DataFetchingEnvironment env) {
