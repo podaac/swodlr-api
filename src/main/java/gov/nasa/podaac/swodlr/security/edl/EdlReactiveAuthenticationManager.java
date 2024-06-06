@@ -29,7 +29,10 @@ public final class EdlReactiveAuthenticationManager implements ReactiveAuthentic
   private final ReactiveAuthenticationManager jwtAuthManager;
   private final SwodlrSecurityProperties securityProperties;
 
-  public EdlReactiveAuthenticationManager(ReactiveJwtDecoder jwtDecoder, SwodlrSecurityProperties securityProperties) {
+  public EdlReactiveAuthenticationManager(
+      ReactiveJwtDecoder jwtDecoder,
+      SwodlrSecurityProperties securityProperties
+  ) {
     this.jwtAuthManager = new JwtReactiveAuthenticationManager(jwtDecoder);
     this.securityProperties = securityProperties;
   }
@@ -65,10 +68,10 @@ public final class EdlReactiveAuthenticationManager implements ReactiveAuthentic
       String username = token.getClaim("uid");
 
       URI userGroupsUri = UriComponentsBuilder
-        .fromHttpUrl(securityProperties.edlBaseUrl())
-        .replacePath("/api/user_groups/groups_for_user/" + username)
-        .queryParam("client_id", securityProperties.edlClientId())
-        .build().toUri();
+          .fromHttpUrl(securityProperties.edlBaseUrl())
+          .replacePath("/api/user_groups/groups_for_user/" + username)
+          .queryParam("client_id", securityProperties.edlClientId())
+          .build().toUri();
 
       logger.debug("Constructed user groups uri: {}", userGroupsUri.toString());
 
@@ -93,7 +96,9 @@ public final class EdlReactiveAuthenticationManager implements ReactiveAuthentic
         if (group.clientId().equals(securityProperties.edlClientId())) {
           swodlrGroups.add(group.name());
         } else {
-          logger.debug("Group client id {} does not match application client id {}", group.clientId(), securityProperties.edlClientId());
+          logger.debug(
+              "Group client id {} does not match application client id {}",
+              group.clientId(), securityProperties.edlClientId());
         }
       }
 
@@ -102,16 +107,16 @@ public final class EdlReactiveAuthenticationManager implements ReactiveAuthentic
   }
 
   private record EdlUserGroupsResponse(
-    @JsonProperty("user_groups") List<UserGroup> userGroups
+      @JsonProperty("user_groups") List<UserGroup> userGroups
   ) { }
 
   private record UserGroup(
-    @JsonProperty("group_id") String groupId,
-    @JsonProperty("name") String name,
-    @JsonProperty("tag") String tag,
-    @JsonProperty("shared_user_group") boolean sharedUserGroup,
-    @JsonProperty("created_by") String createdBy,
-    @JsonProperty("app_uid") String appUid,
-    @JsonProperty("client_id") String clientId
+      @JsonProperty("group_id") String groupId,
+      @JsonProperty("name") String name,
+      @JsonProperty("tag") String tag,
+      @JsonProperty("shared_user_group") boolean sharedUserGroup,
+      @JsonProperty("created_by") String createdBy,
+      @JsonProperty("app_uid") String appUid,
+      @JsonProperty("client_id") String clientId
   ) { }
 }

@@ -3,7 +3,6 @@ package gov.nasa.podaac.swodlr.security.config;
 import gov.nasa.podaac.swodlr.security.SwodlrSecurityProperties;
 import gov.nasa.podaac.swodlr.security.UserBootstrapWebFilter;
 import gov.nasa.podaac.swodlr.security.edl.EdlReactiveAuthenticationManager;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Profile;
@@ -37,12 +36,14 @@ public class WebSecurityConfig {
         .oauth2ResourceServer((resourceServer) -> {
           resourceServer.jwt((jwt) -> {
             ReactiveJwtDecoder jwtDecoder = new NimbusReactiveJwtDecoder(
-              securityProperties.edlBaseUrl() + "/export_edl_jwks"
+                securityProperties.edlBaseUrl() + "/export_edl_jwks"
             );
 
             jwt
-              .jwtDecoder(jwtDecoder)
-              .authenticationManager(new EdlReactiveAuthenticationManager(jwtDecoder, securityProperties));
+                .jwtDecoder(jwtDecoder)
+                .authenticationManager(
+                    new EdlReactiveAuthenticationManager(jwtDecoder, securityProperties)
+                );
           });
         })
         .addFilterAfter(userBootstrapWebFilter, SecurityWebFiltersOrder.AUTHENTICATION);
