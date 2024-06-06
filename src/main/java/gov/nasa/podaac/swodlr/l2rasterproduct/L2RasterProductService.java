@@ -49,14 +49,11 @@ public class L2RasterProductService {
         utmZoneAdjust,
         mgrsBandAdjust
     );
-    Status status = new Status(product, State.NEW);
     ProductHistory history = new ProductHistory(user, product);
-
     product = l2RasterProductRepository.save(product);
-    statusRepository.save(status);
     productHistoryRepository.save(history);
 
-    return productCreateQueue.queueProduct(product).thenReturn(product);
+    return startProductGeneration(product);
   }
 
   @Transactional
@@ -82,7 +79,7 @@ public class L2RasterProductService {
         mgrsBandAdjust
     );
 
-    if (!productResult.isPresent()) {
+    if (productResult.isEmpty()) {
       return Mono.empty();
     }
 
@@ -91,11 +88,18 @@ public class L2RasterProductService {
     productHistoryRepository.save(history);
 
     if (product.getStatuses().get(0).getState() == State.UNAVAILABLE) {
-      Status status = new Status(product, State.NEW);
-      statusRepository.save(status);
-      return productCreateQueue.queueProduct(product).thenReturn(product);
+      return startProductGeneration(product);
     }
 
     return Mono.just(product);
+  }
+
+  @Transactional
+  public Mono<L2RasterProduct> startProductGeneration(L2RasterProduct product) {
+    return Mono.defer(() -> {
+      Status status = new Status(product, State.NEW);
+      statusRepository.save(status);
+      return productCreateQueue.queueProduct(product).thenReturn(product);
+    });
   }
 }

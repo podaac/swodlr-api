@@ -21,4 +21,7 @@ type Mutation {
         utmZoneAdjust: Int,
         mgrsBandAdjust: Int
     ): RasterDefinition!
+
+    # -- Admin --
+    invalidateProduct(id: ID!): L2RasterProduct
 }
