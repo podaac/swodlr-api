@@ -1,28 +1,39 @@
 package gov.nasa.podaac.swodlr.l2rasterproduct;
 
 import gov.nasa.podaac.swodlr.rasterdefinition.GridType;
+import gov.nasa.podaac.swodlr.status.State;
 import gov.nasa.podaac.swodlr.status.Status;
+import gov.nasa.podaac.swodlr.status.StatusRepository;
 import gov.nasa.podaac.swodlr.user.User;
 import gov.nasa.podaac.swodlr.user.UserReference;
 import java.util.List;
 import java.util.UUID;
 import javax.validation.constraints.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.graphql.data.method.annotation.Argument;
 import org.springframework.graphql.data.method.annotation.ContextValue;
 import org.springframework.graphql.data.method.annotation.MutationMapping;
 import org.springframework.graphql.data.method.annotation.QueryMapping;
 import org.springframework.graphql.data.method.annotation.SchemaMapping;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Mono;
 
 @Controller
 public class L2RasterProductController {
-  @Autowired
-  L2RasterProductService l2RasterProductService;
+  private Logger logger = LoggerFactory.getLogger(getClass());
 
   @Autowired
-  L2RasterProductRepository l2RasterProductRepository;
+  private L2RasterProductService l2RasterProductService;
+
+  @Autowired
+  private L2RasterProductRepository l2RasterProductRepository;
+
+  @Autowired
+  private StatusRepository statusRepository;
 
   @MutationMapping
   public Mono<L2RasterProduct> generateL2RasterProduct(
@@ -61,6 +72,25 @@ public class L2RasterProductController {
           utmZoneAdjust,
           mgrsBandAdjust
         )));
+    });
+  }
+
+  @PreAuthorize("hasRole(\"ROLE_Administrator\")")
+  @MutationMapping
+  @Transactional
+  public Mono<L2RasterProduct> invalidateProduct(@Argument UUID id) {
+    return Mono.defer(() -> {
+      var result = l2RasterProductRepository.findById(id);
+      if (result.isEmpty()) {
+        logger.debug("No products found with id: {}", id.toString());
+        return Mono.empty();
+      }
+
+      L2RasterProduct product = result.get();
+      Status invalidatedStatus = new Status(product, State.UNAVAILABLE);
+      statusRepository.save(invalidatedStatus);
+
+      return l2RasterProductService.startProductGeneration(product);
     });
   }
 

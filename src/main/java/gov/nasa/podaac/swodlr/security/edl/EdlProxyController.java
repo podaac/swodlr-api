@@ -1,5 +1,6 @@
-package gov.nasa.podaac.swodlr.security;
+package gov.nasa.podaac.swodlr.security.edl;
 
+import gov.nasa.podaac.swodlr.security.SwodlrSecurityProperties;
 import java.net.URI;
 import java.util.List;
 import java.util.Map;
