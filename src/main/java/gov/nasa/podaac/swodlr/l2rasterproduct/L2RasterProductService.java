@@ -87,7 +87,9 @@ public class L2RasterProductService {
     ProductHistory history = new ProductHistory(requestor, product);
     productHistoryRepository.save(history);
 
-    if (product.getStatuses().get(0).getState() == State.UNAVAILABLE) {
+    State currentState = product.getStatuses().get(0).getState();
+
+    if (currentState == State.UNAVAILABLE || currentState == State.ERROR) {
       return startProductGeneration(product);
     }
 
