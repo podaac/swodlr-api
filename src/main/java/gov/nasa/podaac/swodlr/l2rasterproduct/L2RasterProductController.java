@@ -78,20 +78,18 @@ public class L2RasterProductController {
   @PreAuthorize("hasRole(\"ROLE_Administrator\")")
   @MutationMapping
   @Transactional
-  public Mono<L2RasterProduct> invalidateProduct(@Argument UUID id) {
-    return Mono.defer(() -> {
-      var result = l2RasterProductRepository.findById(id);
-      if (result.isEmpty()) {
-        logger.debug("No products found with id: {}", id.toString());
-        return Mono.empty();
-      }
+  public L2RasterProduct invalidateProduct(@Argument UUID id) {
+    var result = l2RasterProductRepository.findById(id);
+    if (result.isEmpty()) {
+      logger.debug("No products found with id: {}", id.toString());
+      return null;
+    }
 
-      L2RasterProduct product = result.get();
-      Status invalidatedStatus = new Status(product, State.UNAVAILABLE);
-      statusRepository.save(invalidatedStatus);
+    L2RasterProduct product = result.get();
+    Status invalidatedStatus = new Status(product, State.UNAVAILABLE);
+    statusRepository.save(invalidatedStatus);
 
-      return l2RasterProductService.startProductGeneration(product);
-    });
+    return product;
   }
 
   @QueryMapping
