@@ -1,11 +1,15 @@
 package gov.nasa.podaac.swodlr.l2rasterproduct;
 
+import gov.nasa.podaac.swodlr.exception.SwodlrException;
 import gov.nasa.podaac.swodlr.rasterdefinition.GridType;
 import gov.nasa.podaac.swodlr.status.State;
 import gov.nasa.podaac.swodlr.status.Status;
 import gov.nasa.podaac.swodlr.status.StatusRepository;
 import gov.nasa.podaac.swodlr.user.User;
 import gov.nasa.podaac.swodlr.user.UserReference;
+import java.time.DateTimeException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.UUID;
 import javax.validation.constraints.NotNull;
@@ -110,9 +114,52 @@ public class L2RasterProductController {
   @SchemaMapping(typeName = "User", field = "products")
   public List<L2RasterProduct> getProductsForUser(
       @ContextValue UserReference userRef,
+      @Argument Integer cycle,
+      @Argument Integer pass,
+      @Argument Integer scene,
+      @Argument Boolean outputGranuleExtentFlag,
+      @Argument GridType outputSamplingGridType,
+      @Argument Integer rasterResolution,
+      @Argument Integer utmZoneAdjust,
+      @Argument Integer mgrsBandAdjust,
+      @Argument String beforeTimestamp,
+      @Argument String afterTimestamp,
       @Argument UUID after,
       @Argument int limit
   ) {
-    return l2RasterProductRepository.findByUser(userRef.fetch(), after, limit);
+    LocalDateTime beforeDate = null;
+    LocalDateTime afterDate = null;
+
+    if (beforeTimestamp != null) {
+      try {
+        beforeDate = LocalDateTime.parse(beforeTimestamp);
+      } catch (DateTimeParseException ex) {
+        throw new SwodlrException("Invalid \'beforeTimestamp\' - should be ISO8601");
+      }
+    }
+
+    if (afterTimestamp != null) {
+      try {
+        afterDate = LocalDateTime.parse(afterTimestamp);
+      } catch (DateTimeException ex) {
+        throw new SwodlrException("Invalid \'afterTimestamp\' - should be ISO8601");
+      }
+    }
+
+    return l2RasterProductRepository.findByUser(
+        userRef.fetch(),
+        cycle,
+        pass,
+        scene,
+        outputGranuleExtentFlag,
+        outputSamplingGridType,
+        rasterResolution,
+        utmZoneAdjust,
+        mgrsBandAdjust,
+        beforeDate,
+        afterDate,
+        after,
+        limit
+    );
   }
 }
