@@ -4,7 +4,23 @@ type User {
     firstName: String!
     lastName: String!
 
-    products(after: ID, limit: Int = 10): [L2RasterProduct!]!
+    products(
+        cycle: Int,
+        pass: Int,
+        scene: Int,
+        outputGranuleExtentFlag: Boolean,
+        outputSamplingGridType: GridType,
+        rasterResolution: Int,
+        utmZoneAdjust: Int,
+        mgrsBandAdjust: Int,
+        beforeTimestamp: String,
+        afterTimestamp: String,
+
+        # Pagination
+        after: ID,
+        limit: Int = 10
+    ): [L2RasterProduct!]!
+
     rasterDefinitions(
         id: ID,
         outputGranuleExtentFlag: Boolean,
