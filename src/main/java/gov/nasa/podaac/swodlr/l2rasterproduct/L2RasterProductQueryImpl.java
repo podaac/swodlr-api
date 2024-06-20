@@ -68,8 +68,8 @@ public class L2RasterProductQueryImpl implements L2RasterProductQuery {
         JOIN \"ProductHistory\" ON \"ProductHistory\".\"rasterProductId\" = \"L2RasterProducts\".id
         WHERE
           (:cycle is NULL OR \"cycle\" = :cycle) AND
-          (:pass is NULL OR \"cycle\" = :pass) AND
-          (:scene is NULL OR \"cycle\" = :scene) AND
+          (:pass is NULL OR \"pass\" = :pass) AND
+          (:scene is NULL OR \"scene\" = :scene) AND
           (:outputGranuleExtentFlag is NULL OR \"outputGranuleExtentFlag\" = :outputGranuleExtentFlag) AND
           (:outputSamplingGridType is NULL OR \"outputSamplingGridType\" = :outputSamplingGridType) AND
           (:rasterResolution is NULL OR \"rasterResolution\" = :rasterResolution) AND
