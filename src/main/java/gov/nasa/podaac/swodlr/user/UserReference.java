@@ -10,6 +10,9 @@ public class UserReference implements Serializable {
   private static UserRepository userRepository;
 
   private final UUID id;
+  
+  // Attempt to cache here so future lookups don't hit database
+  private transient User user;
 
   public UserReference(User user) {
     id = user.getId();
@@ -26,12 +29,17 @@ public class UserReference implements Serializable {
    * is thrown
    */
   public User fetch() {
-    Optional<User> result = getUserRepository().findById(id);
-    if (result.isEmpty()) {
-      throw new SwodlrException("User cannot be found. Try clearing your cookies and try again.");
-    }
+    if (this.user == null) {
+      Optional<User> result = getUserRepository().findById(id);
+      if (result.isEmpty()) {
+        throw new SwodlrException("User cannot be found. Try clearing your cookies and try again.");
+      }
 
-    return result.get();
+      this.user = result.get();
+    }
+    
+
+    return this.user;
   }
 
   private UserRepository getUserRepository() {

@@ -6,6 +6,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+### Deprecated
+### Removed
+### Fixed
+### Security
+
+
+## [1.2.0]
+
+### Added
+     
+     - Implement permissions model #92
+     - As a user, I do not want to see stacktraces when errors occur #36 
+     - Initial filtering implementation (#41)
+     - Update graphql schema with new filtering endpoint
+     - Hotfix product filtering
+### Fixed
+     - Cache Fix + Invalidate Change (#40)
+
+
 ## [1.1.0]
 
 ### Added

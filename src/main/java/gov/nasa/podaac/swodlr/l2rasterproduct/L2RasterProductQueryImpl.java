@@ -1,13 +1,18 @@
 package gov.nasa.podaac.swodlr.l2rasterproduct;
 
+import gov.nasa.podaac.swodlr.rasterdefinition.GridType;
 import gov.nasa.podaac.swodlr.user.User;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import org.hibernate.Session;
 import org.hibernate.query.Query;
+import org.hibernate.type.BooleanType;
 import org.hibernate.type.IntegerType;
+import org.hibernate.type.LocalDateTimeType;
+import org.hibernate.type.StringType;
 import org.hibernate.type.UUIDCharType;
 
 public class L2RasterProductQueryImpl implements L2RasterProductQuery {
@@ -41,13 +46,37 @@ public class L2RasterProductQueryImpl implements L2RasterProductQuery {
    *    - https://github.com/pgjdbc/pgjdbc/issues/247#issuecomment-78213991
    */
   @Override
-  public List<L2RasterProduct> findByUser(User user, UUID after, int limit) {
+  public List<L2RasterProduct> findByUser(
+      User user,
+      Integer cycle,
+      Integer pass,
+      Integer scene,
+      Boolean outputGranuleExtentFlag,
+      GridType outputSamplingGridType,
+      Integer rasterResolution,
+      Integer utmZoneAdjust,
+      Integer mgrsBandAdjust,
+      LocalDateTime beforeTimestamp,
+      LocalDateTime afterTimestamp,
+      UUID after,
+      int limit
+  ) {
     @SuppressWarnings("LineLength")
     String statement =
         """
         SELECT \"L2RasterProducts\".* FROM \"L2RasterProducts\"
         JOIN \"ProductHistory\" ON \"ProductHistory\".\"rasterProductId\" = \"L2RasterProducts\".id
         WHERE
+          (:cycle is NULL OR \"cycle\" = :cycle) AND
+          (:pass is NULL OR \"pass\" = :pass) AND
+          (:scene is NULL OR \"scene\" = :scene) AND
+          (:outputGranuleExtentFlag is NULL OR \"outputGranuleExtentFlag\" = :outputGranuleExtentFlag) AND
+          (:outputSamplingGridType is NULL OR \"outputSamplingGridType\" = :outputSamplingGridType) AND
+          (:rasterResolution is NULL OR \"rasterResolution\" = :rasterResolution) AND
+          (:utmZoneAdjust is NULL OR \"utmZoneAdjust\" = :utmZoneAdjust) AND
+          (:mgrsBandAdjust is NULL OR \"mgrsBandAdjust\" = :mgrsBandAdjust) AND
+          (CAST(:beforeTimestamp as TIMESTAMP) is NULL OR \"L2RasterProducts\".timestamp <= :beforeTimestamp) AND
+          (CAST(:afterTimestamp as TIMESTAMP) is NULL OR \"L2RasterProducts\".timestamp >= :afterTimestamp) AND
           (\"ProductHistory\".\"requestedById\" = CAST(:userId as UUID)) AND
           (
             (:after is NULL)
@@ -60,6 +89,17 @@ public class L2RasterProductQueryImpl implements L2RasterProductQuery {
     Session session = entityManager.unwrap(Session.class);
     Query<L2RasterProduct> query = session.createNativeQuery(statement, L2RasterProduct.class);
     query.setParameter("userId", user.getId(), UUIDCharType.INSTANCE);
+    query.setParameter("cycle", cycle, IntegerType.INSTANCE);
+    query.setParameter("pass", pass, IntegerType.INSTANCE);
+    query.setParameter("scene", scene, IntegerType.INSTANCE);
+    query.setParameter("outputGranuleExtentFlag", outputGranuleExtentFlag, BooleanType.INSTANCE);
+    query.setParameter("outputSamplingGridType", outputSamplingGridType != null
+        ? outputSamplingGridType.toString() : null, StringType.INSTANCE);
+    query.setParameter("rasterResolution", rasterResolution, IntegerType.INSTANCE);
+    query.setParameter("utmZoneAdjust", utmZoneAdjust, IntegerType.INSTANCE);
+    query.setParameter("mgrsBandAdjust", mgrsBandAdjust, IntegerType.INSTANCE);
+    query.setParameter("beforeTimestamp", beforeTimestamp, LocalDateTimeType.INSTANCE);
+    query.setParameter("afterTimestamp", afterTimestamp, LocalDateTimeType.INSTANCE);
     query.setParameter("after", after, UUIDCharType.INSTANCE);
     query.setParameter("limit", limit, IntegerType.INSTANCE);
 
