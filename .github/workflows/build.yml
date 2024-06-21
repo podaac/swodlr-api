@@ -153,7 +153,6 @@ jobs:
     runs-on: ubuntu-latest
     environment: 
       name: ${{ needs.build.outputs.deploy_env }}
-      url: https://swodlr.podaac.${{ needs.build.outputs.deploy_env }}.earthdatacloud.nasa.gov/api/about
     if: |
       github.ref == 'refs/heads/develop' ||
       github.ref == 'refs/heads/main'    ||
@@ -172,6 +171,10 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: ${{ needs.build.outputs.github_sha }}
+      - name: Retrieve version number
+        run: |
+          VERSION=$(cat bumpver.toml|grep current_version |grep -v {version} |sed -E "s/current_version = //"|sed -E "s/\"//g")
+          echo "SUBMODULE_VERSION=$VERSION">>$GITHUB_ENV
       - uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: ${{ env.TERRAFORM_VERSION }}
@@ -187,13 +190,10 @@ jobs:
           TF_VAR_session_encryption_key: ${{ secrets.SESSION_ENCRYPTION_KEY }}
           TF_VAR_ingest_aws_account: ${{ secrets.INGEST_AWS_ACCOUNT }}
           TF_VAR_ingest_aws_role: ${{ secrets.INGEST_AWS_ROLE }}
+          TF_VAR_container_image_tag: ${{ env.SUBMODULE_VERSION }}
         run: |
           source bin/config.sh ${{ vars.TF_VENUE }}
           terraform apply -auto-approve
-      - name: Retrieve version number for notifications
-        run: |
-          VERSION=$(cat bumpver.toml|grep current_version |grep -v {version} |sed -E "s/current_version = //"|sed -E "s/\"//g")
-          echo "SUBMODULE_VERSION=$VERSION">>$GITHUB_ENV
       - name: Send notifications to slack
         uses: slackapi/slack-github-action@v1.26.0
         env:
