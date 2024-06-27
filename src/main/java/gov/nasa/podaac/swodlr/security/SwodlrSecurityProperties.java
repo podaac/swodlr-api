@@ -17,6 +17,7 @@ public class SwodlrSecurityProperties {
   private final JWEDecrypter decrypter;
   private final Duration sessionLength;
   private final String edlBaseUrl;
+  private final String edlJwksPath;
   private final String edlClientId;
   private final String edlClientSecret;
 
@@ -31,6 +32,7 @@ public class SwodlrSecurityProperties {
       String sessionEncryptionKey,
       Duration sessionLength,
       String edlBaseUrl,
+      String edlJwksPath,
       String edlClientId,
       String edlClientSecret
   ) {
@@ -49,6 +51,7 @@ public class SwodlrSecurityProperties {
     
     this.sessionLength = sessionLength;
     this.edlBaseUrl = edlBaseUrl;
+    this.edlJwksPath = edlJwksPath;
     this.edlClientId = edlClientId;
     this.edlClientSecret = edlClientSecret;
   }
@@ -67,6 +70,10 @@ public class SwodlrSecurityProperties {
 
   public String edlBaseUrl() {
     return edlBaseUrl;
+  }
+
+  public String edlJwksPath() {
+    return edlJwksPath;
   }
 
   public String edlClientId() {

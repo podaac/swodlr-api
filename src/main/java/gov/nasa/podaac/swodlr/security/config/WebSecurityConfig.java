@@ -36,7 +36,7 @@ public class WebSecurityConfig {
         .oauth2ResourceServer((resourceServer) -> {
           resourceServer.jwt((jwt) -> {
             ReactiveJwtDecoder jwtDecoder = new NimbusReactiveJwtDecoder(
-                securityProperties.edlBaseUrl() + "/export_edl_jwks"
+                securityProperties.edlBaseUrl() + securityProperties.edlJwksPath()
             );
 
             jwt
