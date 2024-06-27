@@ -12,6 +12,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 ### Security
 
+## [1.2.1]
+### Fixed
+     - [swodlr/issues/147](https://github.com/podaac/swodlr/issues/147) - Update EDL public JWKS endpoints
+
 
 ## [1.2.0]
 
