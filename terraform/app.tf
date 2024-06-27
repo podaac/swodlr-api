@@ -152,10 +152,16 @@ resource "aws_ssm_parameter" "app_db_password" {
   value = aws_ssm_parameter.db_app_password.value
 }
 
-resource "aws_ssm_parameter" "app_edl_base_path" {
+resource "aws_ssm_parameter" "app_edl_base_url" {
   name = "${local.app_path}/swodlr.security.edl-base-url"
   type = "String"
   value = var.edl_base_url
+}
+
+resource "aws_ssm_parameter" "app_edl_jwks_path" {
+  name = "${local.app_path}/swodlr.security.edl-jwks-path"
+  type = "String"
+  value = var.edl_jwks_path
 }
 
 resource "aws_ssm_parameter" "app_edl_client_id" {
