@@ -44,6 +44,10 @@ variable "edl_base_url" {
     type = string
 }
 
+variable "edl_jwks_path" {
+    type = string
+}
+
 variable "edl_client_id" {
     type = string
 }
